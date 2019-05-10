@@ -1724,20 +1724,19 @@ func (p *Parser) parseCreateDatabaseStatement() (*CreateDatabaseStatement, error
 		return nil, err
 	}
 	stmt.Name = lit
-
 	// Look for "WITH"
 	if tok, _, _ := p.ScanIgnoreWhitespace(); tok == WITH {
 		// validate that at least one of DURATION, NAME, REPLICATION or SHARD is provided
 		tok, pos, lit := p.ScanIgnoreWhitespace()
-		if tok != DURATION && tok != NAME && tok != REPLICATION && tok != SHARD {
-			return nil, newParseError(tokstr(tok, lit), []string{"DURATION", "NAME", "REPLICATION", "SHARD"}, pos)
+		if tok != DURATION && tok != NAME && tok != REPLICATION && tok != SHARD && tok != KEY && tok != PARTITION &&
+			tok != NODES {
+			return nil, newParseError(tokstr(tok, lit), []string{"DURATION", "NAME", "REPLICATION",
+				"SHARD", "KEY", "PARTITION", "NODES"}, pos)
 		}
 		// rewind
 		p.Unscan()
-
 		// mark statement as having a RetentionPolicyInfo defined
 		stmt.RetentionPolicyCreate = true
-
 		// Look for "DURATION"
 		if err := p.parseTokens([]Token{DURATION}); err != nil {
 			p.Unscan()
@@ -1775,6 +1774,28 @@ func (p *Parser) parseCreateDatabaseStatement() (*CreateDatabaseStatement, error
 			}
 		}
 
+		// Look for "KEY"
+		if err := p.parseTokens([]Token{KEY}); err != nil {
+			p.Unscan()
+		} else {
+			key, err := p.parseStringList()
+			if err != nil {
+				return nil, err
+			}
+			stmt.Key = key
+		}
+
+		// Look for "PARTITION"
+		if err := p.parseTokens([]Token{PARTITION}); err != nil {
+			p.Unscan()
+		} else {
+			partition, err := p.ParseInt(1, math.MaxInt32)
+			if err != nil {
+				return nil, err
+			}
+			stmt.Partition = partition
+		}
+
 		// Look for "NAME"
 		if err := p.parseTokens([]Token{NAME}); err != nil {
 			p.Unscan()
@@ -1783,6 +1804,17 @@ func (p *Parser) parseCreateDatabaseStatement() (*CreateDatabaseStatement, error
 			if err != nil {
 				return nil, err
 			}
+		}
+
+		// Look for "NODES"
+		if err := p.parseTokens([]Token{NODES}); err != nil {
+			p.Unscan()
+		} else {
+			stmt.Nodes, err = p.parseStringList()
+			if err != nil {
+				return nil, err
+			}
+
 		}
 	} else {
 		p.Unscan()
@@ -3049,6 +3081,13 @@ var (
 // QuoteString returns a quoted string.
 func QuoteString(s string) string {
 	return `'` + qsReplacer.Replace(s) + `'`
+}
+func QuoteStringList(l [] string) string {
+	for i, s := range l {
+		l[i] = QuoteString(s)
+	}
+	return strings.Join(l, ",")
+
 }
 
 // QuoteIdent returns a quoted identifier from multiple bare identifiers.

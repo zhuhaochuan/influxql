@@ -2750,14 +2750,14 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `CREATE DATABASE testdb`,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name: "testdb",
+				Name:                  "testdb",
 				RetentionPolicyCreate: false,
 			},
 		},
 		{
 			s: `CREATE DATABASE testdb WITH DURATION 24h`,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name: "testdb",
+				Name:                    "testdb",
 				RetentionPolicyCreate:   true,
 				RetentionPolicyDuration: duration(24 * time.Hour),
 			},
@@ -2765,7 +2765,7 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `CREATE DATABASE testdb WITH SHARD DURATION 30m`,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name: "testdb",
+				Name:                              "testdb",
 				RetentionPolicyCreate:             true,
 				RetentionPolicyShardGroupDuration: 30 * time.Minute,
 			},
@@ -2773,7 +2773,7 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `CREATE DATABASE testdb WITH REPLICATION 2`,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name: "testdb",
+				Name:                       "testdb",
 				RetentionPolicyCreate:      true,
 				RetentionPolicyReplication: intptr(2),
 			},
@@ -2781,7 +2781,7 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `CREATE DATABASE testdb WITH NAME test_name`,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name: "testdb",
+				Name:                  "testdb",
 				RetentionPolicyCreate: true,
 				RetentionPolicyName:   "test_name",
 			},
@@ -2789,7 +2789,7 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 NAME test_name`,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name: "testdb",
+				Name:                       "testdb",
 				RetentionPolicyCreate:      true,
 				RetentionPolicyDuration:    duration(24 * time.Hour),
 				RetentionPolicyReplication: intptr(2),
@@ -2799,7 +2799,7 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m NAME test_name `,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name: "testdb",
+				Name:                              "testdb",
 				RetentionPolicyCreate:             true,
 				RetentionPolicyDuration:           duration(24 * time.Hour),
 				RetentionPolicyReplication:        intptr(2),
@@ -2807,7 +2807,45 @@ func TestParser_ParseStatement(t *testing.T) {
 				RetentionPolicyShardGroupDuration: 10 * time.Minute,
 			},
 		},
-
+		{
+			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m PARTITION 3 NAME test_name `,
+			stmt: &influxql.CreateDatabaseStatement{
+				Name:                              "testdb",
+				RetentionPolicyCreate:             true,
+				RetentionPolicyDuration:           duration(24 * time.Hour),
+				RetentionPolicyReplication:        intptr(2),
+				RetentionPolicyName:               "test_name",
+				RetentionPolicyShardGroupDuration: 10 * time.Minute,
+				Partition:                         3,
+			},
+		},
+		{
+			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m KEY 'key1', 'key2' PARTITION 3 NAME test_name  `,
+			stmt: &influxql.CreateDatabaseStatement{
+				Name:                              "testdb",
+				RetentionPolicyCreate:             true,
+				RetentionPolicyDuration:           duration(24 * time.Hour),
+				RetentionPolicyReplication:        intptr(2),
+				RetentionPolicyName:               "test_name",
+				RetentionPolicyShardGroupDuration: 10 * time.Minute,
+				Key:                               []string{"key1", "key2"},
+				Partition:                         3,
+			},
+		},
+		{
+			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m KEY 'key1', 'key2' PARTITION 3 NAME test_name NODES 'n1','n2' `,
+			stmt: &influxql.CreateDatabaseStatement{
+				Name:                              "testdb",
+				RetentionPolicyCreate:             true,
+				RetentionPolicyDuration:           duration(24 * time.Hour),
+				RetentionPolicyReplication:        intptr(2),
+				RetentionPolicyName:               "test_name",
+				RetentionPolicyShardGroupDuration: 10 * time.Minute,
+				Key:                               []string{"key1", "key2"},
+				Nodes:                             []string{"n1", "n2"},
+				Partition:                         3,
+			},
+		},
 		// CREATE USER statement
 		{
 			s: `CREATE USER testuser WITH PASSWORD 'pwd1337'`,
@@ -3235,7 +3273,7 @@ func TestParser_ParseStatement(t *testing.T) {
 		{s: `DROP FOO`, err: `found FOO, expected CONTINUOUS, DATABASE, MEASUREMENT, RETENTION, SERIES, SHARD, SUBSCRIPTION, USER at line 1, char 6`},
 		{s: `CREATE FOO`, err: `found FOO, expected CONTINUOUS, DATABASE, USER, RETENTION, SUBSCRIPTION at line 1, char 8`},
 		{s: `CREATE DATABASE`, err: `found EOF, expected identifier at line 1, char 17`},
-		{s: `CREATE DATABASE "testdb" WITH`, err: `found EOF, expected DURATION, NAME, REPLICATION, SHARD at line 1, char 31`},
+		{s: `CREATE DATABASE "testdb" WITH`, err: `found EOF, expected DURATION, NAME, REPLICATION, SHARD, KEY, PARTITION, NODES at line 1, char 31`},
 		{s: `CREATE DATABASE "testdb" WITH DURATION`, err: `found EOF, expected duration at line 1, char 40`},
 		{s: `CREATE DATABASE "testdb" WITH REPLICATION`, err: `found EOF, expected integer at line 1, char 43`},
 		{s: `CREATE DATABASE "testdb" WITH NAME`, err: `found EOF, expected identifier at line 1, char 36`},

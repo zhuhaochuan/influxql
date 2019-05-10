@@ -573,6 +573,17 @@ func (a SortFields) String() string {
 	return strings.Join(fields, ", ")
 }
 
+// AddNodesStatement represents a command for add  nodes to the cluster
+type AddNodesStatement struct {
+	Hosts   []string
+	MinPort int
+	MaxPort int
+}
+
+func (st *AddNodesStatement) String() {
+
+}
+
 // CreateDatabaseStatement represents a command for creating a new database.
 type CreateDatabaseStatement struct {
 	// Name of the database to be created.
@@ -592,6 +603,9 @@ type CreateDatabaseStatement struct {
 
 	// RetentionPolicyShardGroupDuration indicates shard group duration for the new database.
 	RetentionPolicyShardGroupDuration time.Duration
+	Key                               []string
+	Partition                         int
+	Nodes                             []string
 }
 
 // String returns a string representation of the create database statement.
@@ -613,9 +627,21 @@ func (s *CreateDatabaseStatement) String() string {
 			_, _ = buf.WriteString(" SHARD DURATION ")
 			_, _ = buf.WriteString(s.RetentionPolicyShardGroupDuration.String())
 		}
+		if s.Key != nil {
+			_, _ = buf.WriteString(" KEY ")
+			_, _ = buf.WriteString(QuoteStringList(s.Key))
+		}
+		if s.Partition != 0 {
+			_, _ = buf.WriteString(" PARTITION ")
+			_, _ = buf.WriteString(strconv.Itoa(s.Partition))
+		}
 		if s.RetentionPolicyName != "" {
 			_, _ = buf.WriteString(" NAME ")
 			_, _ = buf.WriteString(QuoteIdent(s.RetentionPolicyName))
+		}
+		if s.Nodes != nil {
+			_, _ = buf.WriteString(" NODES ")
+			_, _ = buf.WriteString(QuoteStringList(s.Nodes))
 		}
 	}
 
