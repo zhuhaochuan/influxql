@@ -278,7 +278,7 @@ func (p *Parser) parseAlterRetentionPolicyStatement() (*AlterRetentionPolicyStat
 	stmt.Replication = r.Replication
 	stmt.ShardGroupDuration = r.ShardGroupDuration
 	stmt.Default = r.Default
-
+	stmt.ClusterOptions = r.ClusterOptions
 	if r.matched == 0 {
 		return nil, errors.New("found EOF, expected DURATION, REPLICATION, SHARD, DEFAULT,PARTITION,KEY,NODES")
 	}

@@ -2810,8 +2810,8 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m NAME test_name PARTITION 3 `,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name:                  "testdb",
-				RetentionPolicyCreate: true,
+				Name:                              "testdb",
+				RetentionPolicyCreate:             true,
 				RetentionPolicyDuration:           duration(24 * time.Hour),
 				RetentionPolicyReplication:        intptr(2),
 				RetentionPolicyShardGroupDuration: 10 * time.Minute,
@@ -2824,8 +2824,8 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m  NAME test_name KEY 'key1', 'key2' PARTITION 3 `,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name:                  "testdb",
-				RetentionPolicyCreate: true,
+				Name:                              "testdb",
+				RetentionPolicyCreate:             true,
 				RetentionPolicyDuration:           duration(24 * time.Hour),
 				RetentionPolicyReplication:        intptr(2),
 				RetentionPolicyShardGroupDuration: 10 * time.Minute,
@@ -2839,8 +2839,8 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m NAME test_name KEY 'key1', 'key2' PARTITION 3 NODES 'n1','n2' `,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name:                  "testdb",
-				RetentionPolicyCreate: true,
+				Name:                              "testdb",
+				RetentionPolicyCreate:             true,
 				RetentionPolicyDuration:           duration(24 * time.Hour),
 				RetentionPolicyReplication:        intptr(2),
 				RetentionPolicyShardGroupDuration: 10 * time.Minute,
@@ -2856,8 +2856,8 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m  NAME test_name KEY 'key1', 'key2' PARTITION 3 NODES 'n1','n2' MODE read `,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name:                  "testdb",
-				RetentionPolicyCreate: true,
+				Name:                              "testdb",
+				RetentionPolicyCreate:             true,
 				RetentionPolicyDuration:           duration(24 * time.Hour),
 				RetentionPolicyReplication:        intptr(2),
 				RetentionPolicyShardGroupDuration: 10 * time.Minute,
@@ -3107,8 +3107,8 @@ func TestParser_ParseStatement(t *testing.T) {
 				Duration:           time.Hour,
 				Replication:        2,
 				ShardGroupDuration: time.Second,
-				ClusterOptions:influxql.ClusterOptions{
-					Partition:3,
+				ClusterOptions: influxql.ClusterOptions{
+					Partition: 3,
 				},
 			},
 		},
@@ -3143,10 +3143,16 @@ func TestParser_ParseStatement(t *testing.T) {
 			stmt: newAlterRetentionPolicyStatement("policy1", "testdb", -1, -1, -1, true),
 		},
 
-		// ALTER RETENTION POLICY without optional DEFAULT
+		// ALTER RETENTION POLICY with partition
 		{
-			s:    `ALTER RETENTION POLICY policy1 ON testdb REPLICATION 4`,
-			stmt: newAlterRetentionPolicyStatement("policy1", "testdb", -1, -1, 4, false),
+			s: `ALTER RETENTION POLICY policy1 ON testdb PARTITIOn 4`,
+			stmt: &influxql.AlterRetentionPolicyStatement{
+				Name:"policy1",
+				Database:"testdb",
+				ClusterOptions:influxql.ClusterOptions{
+					Partition:4,
+				},
+			},
 		},
 		// ALTER default retention policy unquoted
 		{
@@ -4097,6 +4103,30 @@ func newAlterRetentionPolicyStatement(name string, DB string, d, sd time.Duratio
 
 	if replication > -1 {
 		stmt.Replication = &replication
+	}
+
+	return stmt
+}
+func newAlterRetentionPolicyStatement2(name string, DB string, d, sd time.Duration, replication int, dfault bool, partition int) *influxql.AlterRetentionPolicyStatement {
+	stmt := &influxql.AlterRetentionPolicyStatement{
+		Name:     name,
+		Database: DB,
+		Default:  dfault,
+	}
+
+	if d > -1 {
+		stmt.Duration = &d
+	}
+
+	if sd > -1 {
+		stmt.ShardGroupDuration = &sd
+	}
+
+	if replication > -1 {
+		stmt.Replication = &replication
+	}
+	if partition > 0 {
+
 	}
 
 	return stmt
