@@ -278,8 +278,9 @@ func (p *Parser) parseAlterRetentionPolicyStatement() (*AlterRetentionPolicyStat
 	stmt.Replication = r.Replication
 	stmt.ShardGroupDuration = r.ShardGroupDuration
 	stmt.Default = r.Default
-	if stmt.Duration == nil && stmt.Replication == nil && stmt.ShardGroupDuration == nil && stmt.Default == false{
-		return nil,errors.New("found EOF, expected DURATION, REPLICATION, SHARD, DEFAULT")
+
+	if r.matched == 0 {
+		return nil, errors.New("found EOF, expected DURATION, REPLICATION, SHARD, DEFAULT,PARTITION,KEY,NODES")
 	}
 	return stmt, nil
 }
@@ -1643,6 +1644,7 @@ type RetentionOptions struct {
 	// Shard Duration.
 	ShardGroupDuration *time.Duration
 	ClusterOptions
+	matched int
 }
 
 func (p *Parser) parseRetentionOptions() (RetentionOptions, error) {
@@ -1707,18 +1709,19 @@ Loop:
 		}
 		found[tok] = struct{}{}
 	}
-	if err := p.parseClusterOptions(&stmt.ClusterOptions); err != nil {
+	matched, err := p.parseClusterOptions(&stmt.ClusterOptions)
+	if err != nil {
 		return stmt, err
 	}
-
+	stmt.matched = len(found) + matched
 	return stmt, nil
 }
-func (p *Parser) parseClusterOptions(stmt *ClusterOptions) error {
+func (p *Parser) parseClusterOptions(stmt *ClusterOptions) (int, error) {
 	found := make(map[Token]struct{})
 	for {
 		tok, pos, _ := p.ScanIgnoreWhitespace()
 		if _, ok := found[tok]; ok {
-			return &ParseError{
+			return len(found), &ParseError{
 				Message: fmt.Sprintf("found duplicate %s option", tok),
 				Pos:     pos,
 			}
@@ -1727,19 +1730,19 @@ func (p *Parser) parseClusterOptions(stmt *ClusterOptions) error {
 		case KEY:
 			key, err := p.parseStringList()
 			if err != nil {
-				return err
+				return len(found), err
 			}
 			stmt.Key = key
 		case PARTITION:
 			partition, err := p.ParseInt(1, math.MaxInt32)
 			if err != nil {
-				return err
+				return len(found), err
 			}
 			stmt.Partition = partition
 		case NODES:
 			nodes, err := p.parseStringList()
 			if err != nil {
-				return err
+				return len(found), err
 			}
 			stmt.Nodes = nodes
 		case MODE:
@@ -1756,11 +1759,11 @@ func (p *Parser) parseClusterOptions(stmt *ClusterOptions) error {
 				stmt.Mode = WRITE.String()
 			}
 			if stmt.Mode == "" {
-				return errors.New("expect READ or WRITE after MODE")
+				return len(found), errors.New("expect READ or WRITE after MODE")
 			}
 		default:
 			p.Unscan()
-			return nil
+			return len(found), nil
 		}
 		found[tok] = struct{}{}
 	}
@@ -1819,7 +1822,7 @@ func (p *Parser) parseClusterOptions(stmt *ClusterOptions) error {
 		}
 
 	}*/
-	return nil
+	return len(found), nil
 }
 
 // parseCreateDatabaseStatement parses a string and returns a CreateDatabaseStatement.
