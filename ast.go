@@ -593,19 +593,42 @@ type CreateDatabaseStatement struct {
 	RetentionPolicyCreate bool
 
 	// RetentionPolicyDuration indicates retention duration for the new database.
-	RetentionPolicyDuration *time.Duration
+	//RetentionPolicyDuration *time.Duration
 
 	// RetentionPolicyReplication indicates retention replication for the new database.
-	RetentionPolicyReplication *int
+	//RetentionPolicyReplication *int
 
 	// RetentionPolicyName indicates retention name for the new database.
 	RetentionPolicyName string
 
 	// RetentionPolicyShardGroupDuration indicates shard group duration for the new database.
-	RetentionPolicyShardGroupDuration time.Duration
-	Key                               []string
-	Partition                         int
-	Nodes                             []string
+	//RetentionPolicyShardGroupDuration time.Duration
+	RetentionOptions
+}
+type ClusterOptions struct {
+	Key       []string
+	Partition int
+	Nodes     []string
+	Mode      string
+}
+
+func (s *ClusterOptions)WriteString(buf *bytes.Buffer){
+	if s.Key != nil {
+		_, _ = buf.WriteString(" KEY ")
+		_, _ = buf.WriteString(QuoteStringList(s.Key))
+	}
+	if s.Partition != 0 {
+		_, _ = buf.WriteString(" PARTITION ")
+		_, _ = buf.WriteString(strconv.Itoa(s.Partition))
+	}
+	if s.Nodes != nil {
+		_, _ = buf.WriteString(" NODES ")
+		_, _ = buf.WriteString(QuoteStringList(s.Nodes))
+	}
+	if s.Mode != "" {
+		_, _ = buf.WriteString(" MODE ")
+		_, _ = buf.WriteString(s.Mode)
+	}
 }
 
 // String returns a string representation of the create database statement.
@@ -615,34 +638,24 @@ func (s *CreateDatabaseStatement) String() string {
 	_, _ = buf.WriteString(QuoteIdent(s.Name))
 	if s.RetentionPolicyCreate {
 		_, _ = buf.WriteString(" WITH")
-		if s.RetentionPolicyDuration != nil {
+		if s.Duration != nil {
 			_, _ = buf.WriteString(" DURATION ")
-			_, _ = buf.WriteString(s.RetentionPolicyDuration.String())
+			_, _ = buf.WriteString(s.Duration.String())
 		}
-		if s.RetentionPolicyReplication != nil {
+		if s.Replication != nil {
 			_, _ = buf.WriteString(" REPLICATION ")
-			_, _ = buf.WriteString(strconv.Itoa(*s.RetentionPolicyReplication))
+			_, _ = buf.WriteString(strconv.Itoa(*s.Replication))
 		}
-		if s.RetentionPolicyShardGroupDuration > 0 {
+		if s.ShardGroupDuration !=nil {
 			_, _ = buf.WriteString(" SHARD DURATION ")
-			_, _ = buf.WriteString(s.RetentionPolicyShardGroupDuration.String())
-		}
-		if s.Key != nil {
-			_, _ = buf.WriteString(" KEY ")
-			_, _ = buf.WriteString(QuoteStringList(s.Key))
-		}
-		if s.Partition != 0 {
-			_, _ = buf.WriteString(" PARTITION ")
-			_, _ = buf.WriteString(strconv.Itoa(s.Partition))
+			_, _ = buf.WriteString(s.ShardGroupDuration.String())
 		}
 		if s.RetentionPolicyName != "" {
 			_, _ = buf.WriteString(" NAME ")
 			_, _ = buf.WriteString(QuoteIdent(s.RetentionPolicyName))
 		}
-		if s.Nodes != nil {
-			_, _ = buf.WriteString(" NODES ")
-			_, _ = buf.WriteString(QuoteStringList(s.Nodes))
-		}
+		s.ClusterOptions.WriteString(&buf)
+
 	}
 
 	return buf.String()
@@ -957,6 +970,7 @@ type CreateRetentionPolicyStatement struct {
 
 	// Shard Duration.
 	ShardGroupDuration time.Duration
+	ClusterOptions
 }
 
 // String returns a string representation of the create retention policy.
@@ -977,6 +991,7 @@ func (s *CreateRetentionPolicyStatement) String() string {
 	if s.Default {
 		_, _ = buf.WriteString(" DEFAULT")
 	}
+	s.ClusterOptions.WriteString(&buf)
 	return buf.String()
 }
 
@@ -1009,6 +1024,7 @@ type AlterRetentionPolicyStatement struct {
 
 	// Duration of the Shard.
 	ShardGroupDuration *time.Duration
+	ClusterOptions
 }
 
 // String returns a string representation of the alter retention policy statement.
@@ -1037,7 +1053,7 @@ func (s *AlterRetentionPolicyStatement) String() string {
 	if s.Default {
 		_, _ = buf.WriteString(" DEFAULT")
 	}
-
+	s.ClusterOptions.WriteString(&buf)
 	return buf.String()
 }
 

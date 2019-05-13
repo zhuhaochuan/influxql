@@ -144,8 +144,9 @@ const (
 	PARTITION
 	NODE
 	NODES
+	MODE
+	READONLY
 	keywordEnd
-
 )
 
 var tokens = [...]string{
@@ -271,6 +272,8 @@ var tokens = [...]string{
 	PARTITION:     "PARTITION",
 	NODE:          "NODE",
 	NODES:         "NODES",
+	MODE:          "MODE",
+	READONLY:      "READONLY",
 }
 
 var keywords map[string]Token

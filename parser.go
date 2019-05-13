@@ -276,7 +276,9 @@ func (p *Parser) parseCreateRetentionPolicyStatement() (*CreateRetentionPolicySt
 	} else {
 		p.Unscan()
 	}
-
+	if err := p.parseClusterOptions(&stmt.ClusterOptions); err != nil {
+		return nil, err
+	}
 	return stmt, nil
 }
 
@@ -1713,6 +1715,199 @@ func (p *Parser) parseCreateContinuousQueryStatement() (*CreateContinuousQuerySt
 	return stmt, nil
 }
 
+type RetentionOptions struct {
+	// Duration data written to this policy will be retained.
+	Duration *time.Duration
+
+	// Replication factor for data written to this policy.
+	Replication *int
+
+	// Should this policy be set as default for the database?
+	Default bool
+
+	RetentionPolicyName string
+	// Shard Duration.
+	ShardGroupDuration *time.Duration
+	ClusterOptions
+}
+
+func (p *Parser) parseRetentionOptions() (RetentionOptions, error) {
+	stmt := RetentionOptions{}
+	// Loop through option tokens (DURATION, REPLICATION, SHARD DURATION, DEFAULT, etc.).
+	found := make(map[Token]struct{})
+Loop:
+	for {
+		tok, pos, _ := p.ScanIgnoreWhitespace()
+		if _, ok := found[tok]; ok {
+			return stmt, &ParseError{
+				Message: fmt.Sprintf("found duplicate %s option", tok),
+				Pos:     pos,
+			}
+		}
+
+		switch tok {
+		case DURATION:
+			d, err := p.ParseDuration()
+			if err != nil {
+				return stmt, err
+			}
+			stmt.Duration = &d
+		case NAME:
+			n, err := p.ParseIdent()
+			if err != nil {
+				return stmt, err
+			}
+			stmt.RetentionPolicyName = n
+		case REPLICATION:
+			n, err := p.ParseInt(1, math.MaxInt32)
+			if err != nil {
+				return stmt, err
+			}
+			stmt.Replication = &n
+		case SHARD:
+			tok, pos, lit := p.ScanIgnoreWhitespace()
+			if tok == DURATION {
+				// Check to see if they used the INF keyword
+				tok, pos, _ := p.ScanIgnoreWhitespace()
+				if tok == INF {
+					return stmt, &ParseError{
+						Message: "invalid duration INF for shard duration",
+						Pos:     pos,
+					}
+				}
+				p.Unscan()
+
+				d, err := p.ParseDuration()
+				if err != nil {
+					return stmt, err
+				}
+				stmt.ShardGroupDuration = &d
+			} else {
+				return stmt, newParseError(tokstr(tok, lit), []string{"DURATION"}, pos)
+			}
+		case DEFAULT:
+			stmt.Default = true
+		default:
+			p.Unscan()
+			break Loop
+		}
+		found[tok] = struct{}{}
+	}
+	if err := p.parseClusterOptions(&stmt.ClusterOptions); err != nil {
+		return stmt, err
+	}
+
+	return stmt, nil
+}
+func (p *Parser) parseClusterOptions(stmt *ClusterOptions) error {
+	found := make(map[Token]struct{})
+	for {
+		tok, pos, _ := p.ScanIgnoreWhitespace()
+		if _, ok := found[tok]; ok {
+			return &ParseError{
+				Message: fmt.Sprintf("found duplicate %s option", tok),
+				Pos:     pos,
+			}
+		}
+		switch tok {
+		case KEY:
+			key, err := p.parseStringList()
+			if err != nil {
+				return err
+			}
+			stmt.Key = key
+		case PARTITION:
+			partition, err := p.ParseInt(1, math.MaxInt32)
+			if err != nil {
+				return err
+			}
+			stmt.Partition = partition
+		case NODES:
+			nodes, err := p.parseStringList()
+			if err != nil {
+				return err
+			}
+			stmt.Nodes = nodes
+		case MODE:
+			err := p.parseTokens([]Token{READ})
+			if err != nil {
+				p.Unscan()
+			} else {
+				stmt.Mode = READ.String()
+			}
+			err = p.parseTokens([]Token{WRITE})
+			if err != nil {
+				p.Unscan()
+			} else {
+				stmt.Mode = WRITE.String()
+			}
+			if stmt.Mode == "" {
+				return errors.New("expect READ or WRITE after MODE")
+			}
+		default:
+			p.Unscan()
+			return nil
+		}
+		found[tok] = struct{}{}
+	}
+	/*
+	// Look for "KEY"
+	if err := p.parseTokens([]Token{KEY}); err != nil {
+		p.Unscan()
+	} else {
+		key, err := p.parseStringList()
+		if err != nil {
+			return err
+		}
+		stmt.Key = key
+	}
+
+	// Look for "PARTITION"
+	if err := p.parseTokens([]Token{PARTITION}); err != nil {
+		p.Unscan()
+	} else {
+		partition, err := p.ParseInt(1, math.MaxInt32)
+		if err != nil {
+			return err
+		}
+		stmt.Partition = partition
+	}
+
+	// Look for "NODES"
+	if err := p.parseTokens([]Token{NODES}); err != nil {
+		p.Unscan()
+	} else {
+		stmt.Nodes, err = p.parseStringList()
+		if err != nil {
+			return err
+		}
+
+	}
+
+	// Look for "MODE"
+	if err := p.parseTokens([]Token{MODE}); err != nil {
+		p.Unscan()
+	} else {
+		err := p.parseTokens([]Token{READ})
+		if err != nil {
+			p.Unscan()
+		} else {
+			stmt.Mode = READ.String()
+		}
+		err = p.parseTokens([]Token{WRITE})
+		if err != nil {
+			p.Unscan()
+		} else {
+			stmt.Mode = WRITE.String()
+		}
+		if stmt.Mode == "" {
+			return errors.New("expect READ or WRITE after MODE")
+		}
+
+	}*/
+	return nil
+}
+
 // parseCreateDatabaseStatement parses a string and returns a CreateDatabaseStatement.
 // This function assumes the "CREATE DATABASE" tokens have already been consumed.
 func (p *Parser) parseCreateDatabaseStatement() (*CreateDatabaseStatement, error) {
@@ -1738,7 +1933,7 @@ func (p *Parser) parseCreateDatabaseStatement() (*CreateDatabaseStatement, error
 		// mark statement as having a RetentionPolicyInfo defined
 		stmt.RetentionPolicyCreate = true
 		// Look for "DURATION"
-		if err := p.parseTokens([]Token{DURATION}); err != nil {
+		/*if err := p.parseTokens([]Token{DURATION}); err != nil {
 			p.Unscan()
 		} else {
 			rpDuration, err := p.ParseDuration()
@@ -1772,50 +1967,15 @@ func (p *Parser) parseCreateDatabaseStatement() (*CreateDatabaseStatement, error
 			if err != nil {
 				return nil, err
 			}
-		}
-
-		// Look for "KEY"
-		if err := p.parseTokens([]Token{KEY}); err != nil {
-			p.Unscan()
+		}*/
+		if r, err := p.parseRetentionOptions(); err != nil {
+			return nil, err
 		} else {
-			key, err := p.parseStringList()
-			if err != nil {
-				return nil, err
-			}
-			stmt.Key = key
+			stmt.RetentionPolicyName = r.RetentionPolicyName
+			r.RetentionPolicyName = ""
+			stmt.RetentionOptions = r
 		}
 
-		// Look for "PARTITION"
-		if err := p.parseTokens([]Token{PARTITION}); err != nil {
-			p.Unscan()
-		} else {
-			partition, err := p.ParseInt(1, math.MaxInt32)
-			if err != nil {
-				return nil, err
-			}
-			stmt.Partition = partition
-		}
-
-		// Look for "NAME"
-		if err := p.parseTokens([]Token{NAME}); err != nil {
-			p.Unscan()
-		} else {
-			stmt.RetentionPolicyName, err = p.ParseIdent()
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		// Look for "NODES"
-		if err := p.parseTokens([]Token{NODES}); err != nil {
-			p.Unscan()
-		} else {
-			stmt.Nodes, err = p.parseStringList()
-			if err != nil {
-				return nil, err
-			}
-
-		}
 	} else {
 		p.Unscan()
 	}
