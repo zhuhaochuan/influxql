@@ -593,17 +593,18 @@ type CreateDatabaseStatement struct {
 	RetentionPolicyCreate bool
 
 	// RetentionPolicyDuration indicates retention duration for the new database.
-	//RetentionPolicyDuration *time.Duration
+	RetentionPolicyDuration *time.Duration
 
 	// RetentionPolicyReplication indicates retention replication for the new database.
-	//RetentionPolicyReplication *int
+	RetentionPolicyReplication *int
 
 	// RetentionPolicyName indicates retention name for the new database.
 	RetentionPolicyName string
 
 	// RetentionPolicyShardGroupDuration indicates shard group duration for the new database.
-	//RetentionPolicyShardGroupDuration time.Duration
-	RetentionOptions
+	RetentionPolicyShardGroupDuration time.Duration
+
+	ClusterOptions
 }
 type ClusterOptions struct {
 	Key       []string
@@ -612,7 +613,7 @@ type ClusterOptions struct {
 	Mode      string
 }
 
-func (s *ClusterOptions)WriteString(buf *bytes.Buffer){
+func (s *ClusterOptions) WriteString(buf *bytes.Buffer) {
 	if s.Key != nil {
 		_, _ = buf.WriteString(" KEY ")
 		_, _ = buf.WriteString(QuoteStringList(s.Key))
@@ -638,17 +639,17 @@ func (s *CreateDatabaseStatement) String() string {
 	_, _ = buf.WriteString(QuoteIdent(s.Name))
 	if s.RetentionPolicyCreate {
 		_, _ = buf.WriteString(" WITH")
-		if s.Duration != nil {
+		if s.RetentionPolicyDuration != nil {
 			_, _ = buf.WriteString(" DURATION ")
-			_, _ = buf.WriteString(s.Duration.String())
+			_, _ = buf.WriteString(s.RetentionPolicyDuration.String())
 		}
-		if s.Replication != nil {
+		if s.RetentionPolicyReplication != nil {
 			_, _ = buf.WriteString(" REPLICATION ")
-			_, _ = buf.WriteString(strconv.Itoa(*s.Replication))
+			_, _ = buf.WriteString(strconv.Itoa(*s.RetentionPolicyReplication))
 		}
-		if s.ShardGroupDuration !=nil {
+		if s.RetentionPolicyShardGroupDuration != 0 {
 			_, _ = buf.WriteString(" SHARD DURATION ")
-			_, _ = buf.WriteString(s.ShardGroupDuration.String())
+			_, _ = buf.WriteString(s.RetentionPolicyShardGroupDuration.String())
 		}
 		if s.RetentionPolicyName != "" {
 			_, _ = buf.WriteString(" NAME ")

@@ -2757,31 +2757,25 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `CREATE DATABASE testdb WITH DURATION 24h`,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name:                  "testdb",
-				RetentionPolicyCreate: true,
-				RetentionOptions: influxql.RetentionOptions{
-					Duration: duration(24 * time.Hour),
-				},
+				Name:                    "testdb",
+				RetentionPolicyCreate:   true,
+				RetentionPolicyDuration: duration(24 * time.Hour),
 			},
 		},
 		{
 			s: `CREATE DATABASE testdb WITH SHARD DURATION 30m`,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name:                  "testdb",
-				RetentionPolicyCreate: true,
-				RetentionOptions: influxql.RetentionOptions{
-					ShardGroupDuration: duration(30 * time.Minute),
-				},
+				Name:                              "testdb",
+				RetentionPolicyCreate:             true,
+				RetentionPolicyShardGroupDuration: 30 * time.Minute,
 			},
 		},
 		{
 			s: `CREATE DATABASE testdb WITH REPLICATION 2`,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name:                  "testdb",
-				RetentionPolicyCreate: true,
-				RetentionOptions: influxql.RetentionOptions{
-					Replication: intptr(2),
-				},
+				Name:                       "testdb",
+				RetentionPolicyCreate:      true,
+				RetentionPolicyReplication: intptr(2),
 			},
 		},
 		{
@@ -2795,26 +2789,22 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 NAME test_name`,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name:                  "testdb",
-				RetentionPolicyCreate: true,
-				RetentionOptions: influxql.RetentionOptions{
-					Duration:    duration(24 * time.Hour),
-					Replication: intptr(2),
-				},
-				RetentionPolicyName: "test_name",
+				Name:                       "testdb",
+				RetentionPolicyCreate:      true,
+				RetentionPolicyDuration:    duration(24 * time.Hour),
+				RetentionPolicyReplication: intptr(2),
+				RetentionPolicyName:        "test_name",
 			},
 		},
 		{
 			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m NAME test_name `,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name:                  "testdb",
-				RetentionPolicyCreate: true,
-				RetentionOptions: influxql.RetentionOptions{
-					Duration:           duration(24 * time.Hour),
-					Replication:        intptr(2),
-					ShardGroupDuration: duration(10 * time.Minute),
-				},
-				RetentionPolicyName: "test_name",
+				Name:                              "testdb",
+				RetentionPolicyCreate:             true,
+				RetentionPolicyDuration:           duration(24 * time.Hour),
+				RetentionPolicyReplication:        intptr(2),
+				RetentionPolicyShardGroupDuration: 10 * time.Minute,
+				RetentionPolicyName:               "test_name",
 			},
 		},
 		{
@@ -2822,13 +2812,11 @@ func TestParser_ParseStatement(t *testing.T) {
 			stmt: &influxql.CreateDatabaseStatement{
 				Name:                  "testdb",
 				RetentionPolicyCreate: true,
-				RetentionOptions: influxql.RetentionOptions{
-					Duration:           duration(24 * time.Hour),
-					Replication:        intptr(2),
-					ShardGroupDuration: duration(10 * time.Minute),
-					ClusterOptions: influxql.ClusterOptions{
-						Partition: 3,
-					},
+				RetentionPolicyDuration:           duration(24 * time.Hour),
+				RetentionPolicyReplication:        intptr(2),
+				RetentionPolicyShardGroupDuration: 10 * time.Minute,
+				ClusterOptions: influxql.ClusterOptions{
+					Partition: 3,
 				},
 				RetentionPolicyName: "test_name",
 			},
@@ -2836,56 +2824,50 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m  NAME test_name KEY 'key1', 'key2' PARTITION 3 `,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name:                              "testdb",
-				RetentionPolicyCreate:             true,
-				RetentionOptions: influxql.RetentionOptions{
-					Duration:           duration(24 * time.Hour),
-					Replication:        intptr(2),
-					ShardGroupDuration: duration(10 * time.Minute),
-					ClusterOptions: influxql.ClusterOptions{
-						Partition: 3,
-						Key:       []string{"key1", "key2"},
-					},
+				Name:                  "testdb",
+				RetentionPolicyCreate: true,
+				RetentionPolicyDuration:           duration(24 * time.Hour),
+				RetentionPolicyReplication:        intptr(2),
+				RetentionPolicyShardGroupDuration: 10 * time.Minute,
+				ClusterOptions: influxql.ClusterOptions{
+					Partition: 3,
+					Key:       []string{"key1", "key2"},
 				},
-				RetentionPolicyName:               "test_name",
+				RetentionPolicyName: "test_name",
 			},
 		},
 		{
 			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m NAME test_name KEY 'key1', 'key2' PARTITION 3 NODES 'n1','n2' `,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name:                              "testdb",
-				RetentionPolicyCreate:             true,
-				RetentionOptions: influxql.RetentionOptions{
-					Duration:           duration(24 * time.Hour),
-					Replication:        intptr(2),
-					ShardGroupDuration: duration(10 * time.Minute),
-					ClusterOptions: influxql.ClusterOptions{
-						Key:       []string{"key1", "key2"},
-						Nodes:     []string{"n1", "n2"},
-						Partition: 3,
-					},
+				Name:                  "testdb",
+				RetentionPolicyCreate: true,
+				RetentionPolicyDuration:           duration(24 * time.Hour),
+				RetentionPolicyReplication:        intptr(2),
+				RetentionPolicyShardGroupDuration: 10 * time.Minute,
+				ClusterOptions: influxql.ClusterOptions{
+					Key:       []string{"key1", "key2"},
+					Nodes:     []string{"n1", "n2"},
+					Partition: 3,
 				},
-				RetentionPolicyName:               "test_name",
+				RetentionPolicyName: "test_name",
 			},
 		},
 
 		{
 			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m  NAME test_name KEY 'key1', 'key2' PARTITION 3 NODES 'n1','n2' MODE read `,
 			stmt: &influxql.CreateDatabaseStatement{
-				Name:                              "testdb",
-				RetentionPolicyCreate:             true,
-				RetentionOptions: influxql.RetentionOptions{
-					Duration:           duration(24 * time.Hour),
-					Replication:        intptr(2),
-					ShardGroupDuration: duration(10 * time.Minute),
-					ClusterOptions: influxql.ClusterOptions{
-						Key:       []string{"key1", "key2"},
-						Nodes:     []string{"n1", "n2"},
-						Mode:      "READ",
-						Partition: 3,
-					},
+				Name:                  "testdb",
+				RetentionPolicyCreate: true,
+				RetentionPolicyDuration:           duration(24 * time.Hour),
+				RetentionPolicyReplication:        intptr(2),
+				RetentionPolicyShardGroupDuration: 10 * time.Minute,
+				ClusterOptions: influxql.ClusterOptions{
+					Key:       []string{"key1", "key2"},
+					Nodes:     []string{"n1", "n2"},
+					Mode:      "READ",
+					Partition: 3,
 				},
-				RetentionPolicyName:               "test_name",
+				RetentionPolicyName: "test_name",
 			},
 		},
 		// CREATE USER statement

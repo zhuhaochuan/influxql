@@ -1972,8 +1972,12 @@ func (p *Parser) parseCreateDatabaseStatement() (*CreateDatabaseStatement, error
 			return nil, err
 		} else {
 			stmt.RetentionPolicyName = r.RetentionPolicyName
-			r.RetentionPolicyName = ""
-			stmt.RetentionOptions = r
+			stmt.RetentionPolicyDuration = r.Duration
+			if r.ShardGroupDuration != nil {
+				stmt.RetentionPolicyShardGroupDuration = *r.ShardGroupDuration
+			}
+			stmt.RetentionPolicyReplication = r.Replication
+			stmt.ClusterOptions = r.ClusterOptions
 		}
 
 	} else {
