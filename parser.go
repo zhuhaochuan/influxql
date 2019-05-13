@@ -221,64 +221,26 @@ func (p *Parser) parseCreateRetentionPolicyStatement() (*CreateRetentionPolicySt
 	}
 	stmt.Database = ident
 
-	// Parse required DURATION token.
-	if tok, pos, lit := p.ScanIgnoreWhitespace(); tok != DURATION {
-		return nil, newParseError(tokstr(tok, lit), []string{"DURATION"}, pos)
-	}
-
-	// Parse duration value
-	d, err := p.ParseDuration()
+	r, err := p.parseRetentionOptions()
 	if err != nil {
 		return nil, err
 	}
-	stmt.Duration = d
-
-	// Parse required REPLICATION token.
-	if tok, pos, lit := p.ScanIgnoreWhitespace(); tok != REPLICATION {
-		return nil, newParseError(tokstr(tok, lit), []string{"REPLICATION"}, pos)
+	if r.ShardGroupDuration != nil {
+		stmt.ShardGroupDuration = *r.ShardGroupDuration
 	}
-
-	// Parse replication value.
-	n, err := p.ParseInt(1, math.MaxInt32)
-	if err != nil {
-		return nil, err
-	}
-	stmt.Replication = n
-
-	// Parse optional SHARD token.
-	if tok, _, _ := p.ScanIgnoreWhitespace(); tok == SHARD {
-		if tok, pos, lit := p.ScanIgnoreWhitespace(); tok != DURATION {
-			return nil, newParseError(tokstr(tok, lit), []string{"DURATION"}, pos)
-		}
-
-		// Check to see if they used the INF keyword
-		tok, pos, _ := p.ScanIgnoreWhitespace()
-		if tok == INF {
-			return nil, &ParseError{
-				Message: "invalid duration INF for shard duration",
-				Pos:     pos,
-			}
-		}
-		p.Unscan()
-
-		d, err := p.ParseDuration()
-		if err != nil {
-			return nil, err
-		}
-		stmt.ShardGroupDuration = d
+	if r.Duration != nil {
+		stmt.Duration = *r.Duration
 	} else {
-		p.Unscan()
+		return nil, errors.New("expected DURATION")
+	}
+	if r.Replication != nil {
+		stmt.Replication = *r.Replication
+	} else {
+		return nil, errors.New("expected REPLICATION")
 	}
 
-	// Parse optional DEFAULT token.
-	if tok, _, _ := p.ScanIgnoreWhitespace(); tok == DEFAULT {
-		stmt.Default = true
-	} else {
-		p.Unscan()
-	}
-	if err := p.parseClusterOptions(&stmt.ClusterOptions); err != nil {
-		return nil, err
-	}
+	stmt.Default = r.Default
+	stmt.ClusterOptions = r.ClusterOptions
 	return stmt, nil
 }
 
@@ -308,65 +270,17 @@ func (p *Parser) parseAlterRetentionPolicyStatement() (*AlterRetentionPolicyStat
 		return nil, err
 	}
 	stmt.Database = ident
-
-	// Loop through option tokens (DURATION, REPLICATION, SHARD DURATION, DEFAULT, etc.).
-	found := make(map[Token]struct{})
-Loop:
-	for {
-		tok, pos, lit := p.ScanIgnoreWhitespace()
-		if _, ok := found[tok]; ok {
-			return nil, &ParseError{
-				Message: fmt.Sprintf("found duplicate %s option", tok),
-				Pos:     pos,
-			}
-		}
-
-		switch tok {
-		case DURATION:
-			d, err := p.ParseDuration()
-			if err != nil {
-				return nil, err
-			}
-			stmt.Duration = &d
-		case REPLICATION:
-			n, err := p.ParseInt(1, math.MaxInt32)
-			if err != nil {
-				return nil, err
-			}
-			stmt.Replication = &n
-		case SHARD:
-			tok, pos, lit := p.ScanIgnoreWhitespace()
-			if tok == DURATION {
-				// Check to see if they used the INF keyword
-				tok, pos, _ := p.ScanIgnoreWhitespace()
-				if tok == INF {
-					return nil, &ParseError{
-						Message: "invalid duration INF for shard duration",
-						Pos:     pos,
-					}
-				}
-				p.Unscan()
-
-				d, err := p.ParseDuration()
-				if err != nil {
-					return nil, err
-				}
-				stmt.ShardGroupDuration = &d
-			} else {
-				return nil, newParseError(tokstr(tok, lit), []string{"DURATION"}, pos)
-			}
-		case DEFAULT:
-			stmt.Default = true
-		default:
-			if len(found) == 0 {
-				return nil, newParseError(tokstr(tok, lit), []string{"DURATION", "REPLICATION", "SHARD", "DEFAULT"}, pos)
-			}
-			p.Unscan()
-			break Loop
-		}
-		found[tok] = struct{}{}
+	r, err := p.parseRetentionOptions()
+	if err != nil {
+		return nil, err
 	}
-
+	stmt.Duration = r.Duration
+	stmt.Replication = r.Replication
+	stmt.ShardGroupDuration = r.ShardGroupDuration
+	stmt.Default = r.Default
+	if stmt.Duration == nil && stmt.Replication == nil && stmt.ShardGroupDuration == nil && stmt.Default == false{
+		return nil,errors.New("found EOF, expected DURATION, REPLICATION, SHARD, DEFAULT")
+	}
 	return stmt, nil
 }
 
