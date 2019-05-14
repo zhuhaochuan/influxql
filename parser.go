@@ -1939,7 +1939,7 @@ func (p *Parser) parseCreateNodesStatement() (*CreateNodesStatement, error) {
 			}
 			stmt.Labels = map[string]string{}
 			for _, pair := range pairs {
-				kv := strings.Split(pair, ":")
+				kv := strings.Split(pair, "=")
 				if len(kv) != 2 {
 					return nil, errors.New(fmt.Sprintf("bad label:%v,key and value should separate with ':", pair))
 				}
@@ -1976,7 +1976,7 @@ func (p *Parser) parseDropNodesStatement() (*DropNodesStatement, error) {
 		return nil, err
 	}
 	stmt.Names = hosts
-	return stmt,err
+	return stmt, err
 }
 
 // parseDropDatabaseStatement parses a string and returns a DropDatabaseStatement.

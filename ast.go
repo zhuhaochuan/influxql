@@ -603,7 +603,7 @@ func (st *CreateNodesStatement) String() string {
 		buf.WriteString(" LABELS ")
 		var labels []string
 		for k, v := range st.Labels {
-			labels = append(labels, fmt.Sprintf("%v:%v", k, v))
+			labels = append(labels, fmt.Sprintf("%v=%v", k, v))
 		}
 		buf.WriteString(QuoteStringList(labels))
 	}
