@@ -188,6 +188,9 @@ func init() {
 		create.Handle(SUBSCRIPTION, func(p *Parser) (Statement, error) {
 			return p.parseCreateSubscriptionStatement()
 		})
+		create.Handle(NODES, func(p *Parser) (Statement, error) {
+			return p.parseCreateNodesStatement()
+		})
 	})
 	Language.Group(DROP).With(func(drop *ParseTree) {
 		drop.Group(CONTINUOUS).Handle(QUERY, func(p *Parser) (Statement, error) {
@@ -213,6 +216,9 @@ func init() {
 		})
 		drop.Handle(USER, func(p *Parser) (Statement, error) {
 			return p.parseDropUserStatement()
+		})
+		drop.Handle(NODES, func(parser *Parser) (Statement, error) {
+			return parser.parseDropNodesStatement()
 		})
 	})
 	Language.Handle(EXPLAIN, func(p *Parser) (Statement, error) {

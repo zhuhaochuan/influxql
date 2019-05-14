@@ -1746,17 +1746,17 @@ func (p *Parser) parseClusterOptions(stmt *ClusterOptions) (int, error) {
 			}
 			stmt.Nodes = nodes
 		case MODE:
-			err := p.parseTokens([]Token{READ})
+			err := p.parseTokens([]Token{RO})
 			if err != nil {
 				p.Unscan()
 			} else {
-				stmt.Mode = READ.String()
+				stmt.Mode = RO.String()
 			}
-			err = p.parseTokens([]Token{WRITE})
+			err = p.parseTokens([]Token{WO})
 			if err != nil {
 				p.Unscan()
 			} else {
-				stmt.Mode = WRITE.String()
+				stmt.Mode = WO.String()
 			}
 			if stmt.Mode == "" {
 				return len(found), errors.New("expect READ or WRITE after MODE")
@@ -1901,6 +1901,82 @@ func (p *Parser) parseCreateDatabaseStatement() (*CreateDatabaseStatement, error
 		p.Unscan()
 	}
 	return stmt, nil
+}
+
+func (p *Parser) parseCreateNodesStatement() (*CreateNodesStatement, error) {
+	stmt := &CreateNodesStatement{}
+	hosts, err := p.parseStringList()
+	if err != nil {
+		return nil, err
+	}
+	stmt.Hosts = hosts
+	found := make(map[Token]struct{})
+	for {
+		tok, pos, _ := p.ScanIgnoreWhitespace()
+		if _, ok := found[tok]; ok {
+			return nil, &ParseError{
+				Message: fmt.Sprintf("found duplicate %s option", tok),
+				Pos:     pos,
+			}
+		}
+		switch tok {
+		case PORTS:
+			ports, err := p.parseStringList()
+			if err != nil {
+				return nil, err
+			}
+			for _, p := range ports {
+				i, err := strconv.Atoi(p)
+				if err != nil {
+					return nil, errors.New(fmt.Sprintf("port %v format err:%v", p, err.Error()))
+				}
+				stmt.Ports = append(stmt.Ports, i)
+			}
+		case LABELS:
+			pairs, err := p.parseStringList()
+			if err != nil {
+				return nil, err
+			}
+			stmt.Labels = map[string]string{}
+			for _, pair := range pairs {
+				kv := strings.Split(pair, ":")
+				if len(kv) != 2 {
+					return nil, errors.New(fmt.Sprintf("bad label:%v,key and value should separate with ':", pair))
+				}
+				stmt.Labels[kv[0]] = kv[1]
+			}
+
+		case MODE:
+			err := p.parseTokens([]Token{RO})
+			if err != nil {
+				p.Unscan()
+			} else {
+				stmt.Mode = RO.String()
+			}
+			err = p.parseTokens([]Token{WO})
+			if err != nil {
+				p.Unscan()
+			} else {
+				stmt.Mode = WO.String()
+			}
+			if stmt.Mode == "" {
+				return nil, errors.New("expect READ or WRITE after MODE")
+			}
+		default:
+			return stmt, nil
+		}
+		found[tok] = struct{}{}
+	}
+
+}
+func (p *Parser) parseDropNodesStatement() (*DropNodesStatement, error) {
+	stmt := &DropNodesStatement{}
+	hosts, err := p.parseStringList()
+	if err != nil {
+		return nil, err
+	}
+	stmt.Names = hosts
+	return stmt,err
 }
 
 // parseDropDatabaseStatement parses a string and returns a DropDatabaseStatement.

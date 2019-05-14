@@ -2854,7 +2854,7 @@ func TestParser_ParseStatement(t *testing.T) {
 		},
 
 		{
-			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m  NAME test_name KEY 'key1', 'key2' PARTITION 3 NODES 'n1','n2' MODE read `,
+			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m  NAME test_name KEY 'key1', 'key2' PARTITION 3 NODES 'n1','n2' MODE ro `,
 			stmt: &influxql.CreateDatabaseStatement{
 				Name:                              "testdb",
 				RetentionPolicyCreate:             true,
@@ -2864,7 +2864,7 @@ func TestParser_ParseStatement(t *testing.T) {
 				ClusterOptions: influxql.ClusterOptions{
 					Key:       []string{"key1", "key2"},
 					Nodes:     []string{"n1", "n2"},
-					Mode:      "READ",
+					Mode:      "RO",
 					Partition: 3,
 				},
 				RetentionPolicyName: "test_name",
@@ -3242,7 +3242,22 @@ func TestParser_ParseStatement(t *testing.T) {
 			s:    `SHOW SUBSCRIPTIONS`,
 			stmt: &influxql.ShowSubscriptionsStatement{},
 		},
-
+		// NODES
+		{
+			s: "CREATE NODES 'n1','n2','n3' PORTS '8888','7777' LABELS 'a:b' MODE RO ",
+			stmt: &influxql.CreateNodesStatement{
+				Hosts:  []string{"n1", "n2", "n3"},
+				Ports:  []int{8888, 7777},
+				Labels: map[string]string{"a": "b"},
+				Mode:   "RO",
+			},
+		},
+		{
+			s: "DROP NODES 'n1:8888','n1:7777' ",
+			stmt: &influxql.DropNodesStatement{
+				Names: []string{"n1:8888", "n1:7777"},
+			},
+		},
 		// Errors
 		{s: ``, err: `found EOF, expected SELECT, DELETE, SHOW, CREATE, DROP, EXPLAIN, GRANT, REVOKE, ALTER, SET, KILL at line 1, char 1`},
 		{s: `SELECT`, err: `found EOF, expected identifier, string, number, bool at line 1, char 8`},
@@ -3305,8 +3320,8 @@ func TestParser_ParseStatement(t *testing.T) {
 		{s: `CREATE CONTINUOUS QUERY`, err: `found EOF, expected identifier at line 1, char 25`},
 		{s: `CREATE CONTINUOUS QUERY cq ON db RESAMPLE FOR 5s BEGIN SELECT mean(value) INTO cpu_mean FROM cpu GROUP BY time(10s) END`, err: `FOR duration must be >= GROUP BY time duration: must be a minimum of 10s, got 5s`},
 		{s: `CREATE CONTINUOUS QUERY cq ON db RESAMPLE EVERY 10s FOR 5s BEGIN SELECT mean(value) INTO cpu_mean FROM cpu GROUP BY time(5s) END`, err: `FOR duration must be >= GROUP BY time duration: must be a minimum of 10s, got 5s`},
-		{s: `DROP FOO`, err: `found FOO, expected CONTINUOUS, DATABASE, MEASUREMENT, RETENTION, SERIES, SHARD, SUBSCRIPTION, USER at line 1, char 6`},
-		{s: `CREATE FOO`, err: `found FOO, expected CONTINUOUS, DATABASE, USER, RETENTION, SUBSCRIPTION at line 1, char 8`},
+		{s: `DROP FOO`, err: `found FOO, expected CONTINUOUS, DATABASE, MEASUREMENT, RETENTION, SERIES, SHARD, SUBSCRIPTION, USER, NODES at line 1, char 6`},
+		{s: `CREATE FOO`, err: `found FOO, expected CONTINUOUS, DATABASE, USER, RETENTION, SUBSCRIPTION, NODES at line 1, char 8`},
 		{s: `CREATE DATABASE`, err: `found EOF, expected identifier at line 1, char 17`},
 		{s: `CREATE DATABASE "testdb" WITH`, err: `found EOF, expected DURATION, NAME, REPLICATION, SHARD, KEY, PARTITION, NODES at line 1, char 31`},
 		{s: `CREATE DATABASE "testdb" WITH DURATION`, err: `found EOF, expected duration at line 1, char 40`},

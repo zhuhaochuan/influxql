@@ -254,33 +254,35 @@ func (*ShowTagValuesCardinalityStatement) node()   {}
 func (*ShowTagValuesStatement) node()              {}
 func (*ShowUsersStatement) node()                  {}
 
-func (*BinaryExpr) node()      {}
-func (*BooleanLiteral) node()  {}
-func (*BoundParameter) node()  {}
-func (*Call) node()            {}
-func (*Dimension) node()       {}
-func (Dimensions) node()       {}
-func (*DurationLiteral) node() {}
-func (*IntegerLiteral) node()  {}
-func (*UnsignedLiteral) node() {}
-func (*Field) node()           {}
-func (Fields) node()           {}
-func (*Measurement) node()     {}
-func (Measurements) node()     {}
-func (*NilLiteral) node()      {}
-func (*NumberLiteral) node()   {}
-func (*ParenExpr) node()       {}
-func (*RegexLiteral) node()    {}
-func (*ListLiteral) node()     {}
-func (*SortField) node()       {}
-func (SortFields) node()       {}
-func (Sources) node()          {}
-func (*StringLiteral) node()   {}
-func (*SubQuery) node()        {}
-func (*Target) node()          {}
-func (*TimeLiteral) node()     {}
-func (*VarRef) node()          {}
-func (*Wildcard) node()        {}
+func (*BinaryExpr) node()           {}
+func (*BooleanLiteral) node()       {}
+func (*BoundParameter) node()       {}
+func (*Call) node()                 {}
+func (*Dimension) node()            {}
+func (Dimensions) node()            {}
+func (*DurationLiteral) node()      {}
+func (*IntegerLiteral) node()       {}
+func (*UnsignedLiteral) node()      {}
+func (*Field) node()                {}
+func (Fields) node()                {}
+func (*Measurement) node()          {}
+func (Measurements) node()          {}
+func (*NilLiteral) node()           {}
+func (*NumberLiteral) node()        {}
+func (*ParenExpr) node()            {}
+func (*RegexLiteral) node()         {}
+func (*ListLiteral) node()          {}
+func (*SortField) node()            {}
+func (SortFields) node()            {}
+func (Sources) node()               {}
+func (*StringLiteral) node()        {}
+func (*SubQuery) node()             {}
+func (*Target) node()               {}
+func (*TimeLiteral) node()          {}
+func (*VarRef) node()               {}
+func (*Wildcard) node()             {}
+func (*CreateNodesStatement) node() {}
+func (*DropNodesStatement) node()   {}
 
 // Query represents a collection of ordered statements.
 type Query struct {
@@ -371,16 +373,18 @@ func (*ShowShardsStatement) stmt()                 {}
 func (*ShowStatsStatement) stmt()                  {}
 func (*DropShardStatement) stmt()                  {}
 func (*ShowSubscriptionsStatement) stmt()          {}
-func (*ShowDiagnosticsStatement) stmt()            {}
-func (*ShowTagKeyCardinalityStatement) stmt()      {}
-func (*ShowTagKeysStatement) stmt()                {}
-func (*ShowTagValuesCardinalityStatement) stmt()   {}
-func (*ShowTagValuesStatement) stmt()              {}
-func (*ShowUsersStatement) stmt()                  {}
-func (*RevokeStatement) stmt()                     {}
-func (*RevokeAdminStatement) stmt()                {}
-func (*SelectStatement) stmt()                     {}
-func (*SetPasswordUserStatement) stmt()            {}
+func (*ShowDiagnosticsStatement) stmt()          {}
+func (*ShowTagKeyCardinalityStatement) stmt()    {}
+func (*ShowTagKeysStatement) stmt()              {}
+func (*ShowTagValuesCardinalityStatement) stmt() {}
+func (*ShowTagValuesStatement) stmt()            {}
+func (*ShowUsersStatement) stmt()                {}
+func (*RevokeStatement) stmt()                   {}
+func (*RevokeAdminStatement) stmt()              {}
+func (*SelectStatement) stmt()                   {}
+func (*SetPasswordUserStatement) stmt()          {}
+func (*CreateNodesStatement) stmt()              {}
+func (*DropNodesStatement) stmt()                {}
 
 // Expr represents an expression that can be evaluated to a value.
 type Expr interface {
@@ -573,17 +577,62 @@ func (a SortFields) String() string {
 	return strings.Join(fields, ", ")
 }
 
-// AddNodesStatement represents a command for add  nodes to the cluster
-type AddNodesStatement struct {
-	Hosts   []string
-	MinPort int
-	MaxPort int
+// CreateNodesStatement represents a command for add  nodes to the cluster
+type CreateNodesStatement struct {
+	Hosts  []string
+	Ports  []int
+	Labels map[string]string
+	Mode   string
 }
 
-func (st *AddNodesStatement) String() {
-
+func (st *CreateNodesStatement) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("CREATE NODES ")
+	if st.Hosts != nil {
+		buf.WriteString(QuoteStringList(st.Hosts))
+	}
+	if st.Ports != nil {
+		buf.WriteString(" PORTS ")
+		var ports []string
+		for _, i := range st.Ports {
+			ports = append(ports, strconv.Itoa(i))
+		}
+		buf.WriteString(QuoteStringList(ports))
+	}
+	if st.Labels != nil {
+		buf.WriteString(" LABELS ")
+		var labels []string
+		for k, v := range st.Labels {
+			labels = append(labels, fmt.Sprintf("%v:%v", k, v))
+		}
+		buf.WriteString(QuoteStringList(labels))
+	}
+	if st.Mode == RO.String() || st.Mode == WO.String() {
+		buf.WriteString(" MODE ")
+		buf.WriteString(st.Mode)
+	}
+	return buf.String()
+}
+func (s *CreateNodesStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
+	return ExecutionPrivileges{{Admin: true, Name: "", Privilege: AllPrivileges}}, nil
 }
 
+type DropNodesStatement struct {
+	Names []string
+}
+
+func (st *DropNodesStatement) String() string{
+	var buf bytes.Buffer
+	buf.WriteString("DROP NODES")
+	if st.Names != nil {
+		buf.WriteString(" ")
+		buf.WriteString(QuoteStringList(st.Names))
+	}
+	return buf.String()
+}
+func (s *DropNodesStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
+	return ExecutionPrivileges{{Admin: true, Name: "", Privilege: AllPrivileges}}, nil
+}
 // CreateDatabaseStatement represents a command for creating a new database.
 type CreateDatabaseStatement struct {
 	// Name of the database to be created.

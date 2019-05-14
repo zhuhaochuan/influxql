@@ -146,6 +146,11 @@ const (
 	NODES
 	MODE
 	READONLY
+	REMOVE
+	RO
+	WO
+	PORTS
+	LABELS
 	keywordEnd
 )
 
@@ -274,6 +279,12 @@ var tokens = [...]string{
 	NODES:         "NODES",
 	MODE:          "MODE",
 	READONLY:      "READONLY",
+	REMOVE:        "REMOVE",
+	RO:            "RO",
+	WO:            "WO",
+	PORTS:         "PORTS",
+	LABELS:        "LABELS",
+
 }
 
 var keywords map[string]Token
