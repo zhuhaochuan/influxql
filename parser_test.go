@@ -3145,12 +3145,14 @@ func TestParser_ParseStatement(t *testing.T) {
 
 		// ALTER RETENTION POLICY with partition
 		{
-			s: `ALTER RETENTION POLICY policy1 ON testdb PARTITIOn 4`,
+			s: `ALTER RETENTION POLICY policy1 ON testdb PARTITION 4 KEY 'a' NODES 'a','b'`,
 			stmt: &influxql.AlterRetentionPolicyStatement{
-				Name:"policy1",
-				Database:"testdb",
-				ClusterOptions:influxql.ClusterOptions{
-					Partition:4,
+				Name:     "policy1",
+				Database: "testdb",
+				ClusterOptions: influxql.ClusterOptions{
+					Partition: 4,
+					Key:       []string{"a"},
+					Nodes:     []string{"a", "b"},
 				},
 			},
 		},
