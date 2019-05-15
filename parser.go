@@ -449,9 +449,24 @@ func (p *Parser) parseStringList() ([]string, error) {
 		if str, err = p.parseString(); err != nil {
 			return nil, err
 		}
-
 		strs = append(strs, str)
 	}
+}
+
+func (p *Parser) parseStringMap() (map[string]string, error) {
+	pairs, err := p.parseStringList()
+	if err != nil {
+		return nil, err
+	}
+	m := map[string]string{}
+	for _, pair := range pairs {
+		kv := strings.Split(pair, "=")
+		if len(kv) != 2 {
+			return nil, errors.New(fmt.Sprintf("bad label:%v,key and value should separate with ':", pair))
+		}
+		m[kv[0]] = kv[1]
+	}
+	return m, nil
 }
 
 // parseRevokeStatement parses a string and returns a revoke statement.
@@ -1740,7 +1755,7 @@ func (p *Parser) parseClusterOptions(stmt *ClusterOptions) (int, error) {
 			}
 			stmt.Partition = partition
 		case NODES:
-			nodes, err := p.parseStringList()
+			nodes, err := p.parseStringMap()
 			if err != nil {
 				return len(found), err
 			}
@@ -1924,18 +1939,12 @@ func (p *Parser) parseNodeOptions() (*NodeOptions, map[Token]struct{}, error) {
 		}
 		switch tok {
 		case LABELS:
-			pairs, err := p.parseStringList()
+			labels, err := p.parseStringMap()
 			if err != nil {
 				return nil, found, err
 			}
-			stmt.Labels = map[string]string{}
-			for _, pair := range pairs {
-				kv := strings.Split(pair, "=")
-				if len(kv) != 2 {
-					return nil, found, errors.New(fmt.Sprintf("bad label:%v,key and value should separate with ':", pair))
-				}
-				stmt.Labels[kv[0]] = kv[1]
-			}
+			stmt.Labels = labels
+
 
 		case MODE:
 			err := p.parseTokens([]Token{RO})

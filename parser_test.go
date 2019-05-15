@@ -2837,7 +2837,7 @@ func TestParser_ParseStatement(t *testing.T) {
 			},
 		},
 		{
-			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m NAME test_name KEY 'key1', 'key2' PARTITION 3 NODES 'n1','n2' `,
+			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m NAME test_name KEY 'key1', 'key2' PARTITION 3 NODES 'a=b','c=d' `,
 			stmt: &influxql.CreateDatabaseStatement{
 				Name:                              "testdb",
 				RetentionPolicyCreate:             true,
@@ -2845,8 +2845,11 @@ func TestParser_ParseStatement(t *testing.T) {
 				RetentionPolicyReplication:        intptr(2),
 				RetentionPolicyShardGroupDuration: 10 * time.Minute,
 				ClusterOptions: influxql.ClusterOptions{
-					Key:       []string{"key1", "key2"},
-					Nodes:     []string{"n1", "n2"},
+					Key: []string{"key1", "key2"},
+					Nodes: map[string]string{
+						"a": "b",
+						"c": "d",
+					},
 					Partition: 3,
 				},
 				RetentionPolicyName: "test_name",
@@ -2854,7 +2857,7 @@ func TestParser_ParseStatement(t *testing.T) {
 		},
 
 		{
-			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m  NAME test_name KEY 'key1', 'key2' PARTITION 3 NODES 'n1','n2' MODE ro `,
+			s: `CREATE DATABASE testdb WITH DURATION 24h REPLICATION 2 SHARD DURATION 10m  NAME test_name KEY 'key1', 'key2' PARTITION 3 NODES 'a=b','c=d' MODE ro `,
 			stmt: &influxql.CreateDatabaseStatement{
 				Name:                              "testdb",
 				RetentionPolicyCreate:             true,
@@ -2863,7 +2866,10 @@ func TestParser_ParseStatement(t *testing.T) {
 				RetentionPolicyShardGroupDuration: 10 * time.Minute,
 				ClusterOptions: influxql.ClusterOptions{
 					Key:       []string{"key1", "key2"},
-					Nodes:     []string{"n1", "n2"},
+					Nodes: map[string]string{
+						"a":"b",
+						"c":"d",
+					},
 					Mode:      "RO",
 					Partition: 3,
 				},
@@ -3145,14 +3151,17 @@ func TestParser_ParseStatement(t *testing.T) {
 
 		// ALTER RETENTION POLICY with partition
 		{
-			s: `ALTER RETENTION POLICY policy1 ON testdb PARTITION 4 KEY 'a' NODES 'a','b'`,
+			s: `ALTER RETENTION POLICY policy1 ON testdb PARTITION 4 KEY 'a' NODES 'a=b','c=d'`,
 			stmt: &influxql.AlterRetentionPolicyStatement{
 				Name:     "policy1",
 				Database: "testdb",
 				ClusterOptions: influxql.ClusterOptions{
 					Partition: 4,
 					Key:       []string{"a"},
-					Nodes:     []string{"a", "b"},
+					Nodes:     map[string]string{
+						"a": "b",
+						"c": "d",
+					},
 				},
 			},
 		},
