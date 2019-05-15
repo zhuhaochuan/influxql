@@ -3244,12 +3244,27 @@ func TestParser_ParseStatement(t *testing.T) {
 		},
 		// NODES
 		{
-			s: "CREATE NODES 'n1','n2','n3' PORTS '8888','7777' LABELS 'a=b' MODE RO ",
+			s: "CREATE NODES 'n1','n2','n3' PORTS '8888','7777' LABELS 'a=b' DISABLE MODE RO ",
 			stmt: &influxql.CreateNodesStatement{
 				Hosts:  []string{"n1", "n2", "n3"},
 				Ports:  []int{8888, 7777},
-				Labels: map[string]string{"a": "b"},
-				Mode:   "RO",
+				NodeOptions:influxql.NodeOptions{
+					Labels: map[string]string{"a": "b"},
+					Mode:   "RO",
+					Enable: influxql.Boolptr(false),
+				},
+
+			},
+		},
+		{
+			s: "ALTER NODES 'n1:8888','n2:7777' ENABLE LABELS 'c=d' MODE WO",
+			stmt:&influxql.AlterNodesStatement{
+				Names:[]string{"n1:8888","n2:7777"},
+				NodeOptions:influxql.NodeOptions{
+					Labels: map[string]string{"c":"d"},
+					Mode: "WO",
+					Enable:influxql.Boolptr(true),
+				},
 			},
 		},
 		{
@@ -3432,7 +3447,7 @@ func TestParser_ParseStatement(t *testing.T) {
 		{s: `CREATE RETENTION POLICY policy1 ON testdb DURATION 1h REPLICATION 0`, err: `invalid value 0: must be 1 <= n <= 2147483647 at line 1, char 67`},
 		{s: `CREATE RETENTION POLICY policy1 ON testdb DURATION 1h REPLICATION bad`, err: `found bad, expected integer at line 1, char 67`},
 		{s: `CREATE RETENTION POLICY policy1 ON testdb DURATION 1h REPLICATION 2 SHARD DURATION INF`, err: `invalid duration INF for shard duration at line 1, char 84`},
-		{s: `ALTER`, err: `found EOF, expected RETENTION at line 1, char 7`},
+		{s: `ALTER`, err: `found EOF, expected RETENTION, NODES at line 1, char 7`},
 		{s: `ALTER RETENTION`, err: `found EOF, expected POLICY at line 1, char 17`},
 		{s: `ALTER RETENTION POLICY`, err: `found EOF, expected identifier at line 1, char 24`},
 		{s: `ALTER RETENTION POLICY policy1`, err: `found EOF, expected ON at line 1, char 32`}, {s: `ALTER RETENTION POLICY policy1 ON`, err: `found EOF, expected identifier at line 1, char 35`},

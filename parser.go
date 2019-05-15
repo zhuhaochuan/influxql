@@ -1902,7 +1902,68 @@ func (p *Parser) parseCreateDatabaseStatement() (*CreateDatabaseStatement, error
 	}
 	return stmt, nil
 }
+func Boolptr(b bool) *bool {
+	return &b
+}
+func (p *Parser) parseNodeOptions() (*NodeOptions, map[Token]struct{}, error) {
+	stmt := &NodeOptions{}
+	found := make(map[Token]struct{})
+	for {
+		tok, pos, _ := p.ScanIgnoreWhitespace()
+		if _, ok := found[tok]; ok {
+			return nil, found, &ParseError{
+				Message: fmt.Sprintf("found duplicate %s option", tok),
+				Pos:     pos,
+			}
+		}
+		if _, ok := found[ENABLE]; ok {
+			if _, ok2 := found[DISABLE]; ok2 {
+				return nil,found,errors.New("disable and enable in same time")
+			}
 
+		}
+		switch tok {
+		case LABELS:
+			pairs, err := p.parseStringList()
+			if err != nil {
+				return nil, found, err
+			}
+			stmt.Labels = map[string]string{}
+			for _, pair := range pairs {
+				kv := strings.Split(pair, "=")
+				if len(kv) != 2 {
+					return nil, found, errors.New(fmt.Sprintf("bad label:%v,key and value should separate with ':", pair))
+				}
+				stmt.Labels[kv[0]] = kv[1]
+			}
+
+		case MODE:
+			err := p.parseTokens([]Token{RO})
+			if err != nil {
+				p.Unscan()
+			} else {
+				stmt.Mode = RO.String()
+			}
+			err = p.parseTokens([]Token{WO})
+			if err != nil {
+				p.Unscan()
+			} else {
+				stmt.Mode = WO.String()
+			}
+			if stmt.Mode == "" {
+				return nil, found, errors.New("expect RO or WRITE after RO")
+			}
+		case DISABLE:
+			stmt.Enable = Boolptr(false)
+		case ENABLE:
+			stmt.Enable = Boolptr(true)
+		default:
+			p.Unscan()
+			return stmt, found, nil
+		}
+		found[tok] = struct{}{}
+	}
+}
 func (p *Parser) parseCreateNodesStatement() (*CreateNodesStatement, error) {
 	stmt := &CreateNodesStatement{}
 	hosts, err := p.parseStringList()
@@ -1911,6 +1972,7 @@ func (p *Parser) parseCreateNodesStatement() (*CreateNodesStatement, error) {
 	}
 	stmt.Hosts = hosts
 	found := make(map[Token]struct{})
+LOOP:
 	for {
 		tok, pos, _ := p.ScanIgnoreWhitespace()
 		if _, ok := found[tok]; ok {
@@ -1932,42 +1994,35 @@ func (p *Parser) parseCreateNodesStatement() (*CreateNodesStatement, error) {
 				}
 				stmt.Ports = append(stmt.Ports, i)
 			}
-		case LABELS:
-			pairs, err := p.parseStringList()
-			if err != nil {
-				return nil, err
-			}
-			stmt.Labels = map[string]string{}
-			for _, pair := range pairs {
-				kv := strings.Split(pair, "=")
-				if len(kv) != 2 {
-					return nil, errors.New(fmt.Sprintf("bad label:%v,key and value should separate with ':", pair))
-				}
-				stmt.Labels[kv[0]] = kv[1]
-			}
-
-		case MODE:
-			err := p.parseTokens([]Token{RO})
-			if err != nil {
-				p.Unscan()
-			} else {
-				stmt.Mode = RO.String()
-			}
-			err = p.parseTokens([]Token{WO})
-			if err != nil {
-				p.Unscan()
-			} else {
-				stmt.Mode = WO.String()
-			}
-			if stmt.Mode == "" {
-				return nil, errors.New("expect READ or WRITE after MODE")
-			}
 		default:
-			return stmt, nil
+			p.Unscan()
+			break LOOP
 		}
 		found[tok] = struct{}{}
 	}
-
+	options, _, err := p.parseNodeOptions()
+	if err != nil {
+		return nil, err
+	}
+	stmt.NodeOptions = *options
+	return stmt, nil
+}
+func (p *Parser) parseAlterNodesStatement() (*AlterNodesStatement, error) {
+	stmt := &AlterNodesStatement{}
+	hosts, err := p.parseStringList()
+	if err != nil {
+		return nil, err
+	}
+	stmt.Names = hosts
+	o, found, err := p.parseNodeOptions()
+	if err != nil {
+		return nil, err
+	}
+	if len(found) == 0 {
+		return nil, errors.New("no options")
+	}
+	stmt.NodeOptions = *o
+	return stmt, nil
 }
 func (p *Parser) parseDropNodesStatement() (*DropNodesStatement, error) {
 	stmt := &DropNodesStatement{}

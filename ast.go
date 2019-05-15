@@ -283,6 +283,7 @@ func (*VarRef) node()               {}
 func (*Wildcard) node()             {}
 func (*CreateNodesStatement) node() {}
 func (*DropNodesStatement) node()   {}
+func (*AlterNodesStatement) node()  {}
 
 // Query represents a collection of ordered statements.
 type Query struct {
@@ -373,18 +374,19 @@ func (*ShowShardsStatement) stmt()                 {}
 func (*ShowStatsStatement) stmt()                  {}
 func (*DropShardStatement) stmt()                  {}
 func (*ShowSubscriptionsStatement) stmt()          {}
-func (*ShowDiagnosticsStatement) stmt()          {}
-func (*ShowTagKeyCardinalityStatement) stmt()    {}
-func (*ShowTagKeysStatement) stmt()              {}
-func (*ShowTagValuesCardinalityStatement) stmt() {}
-func (*ShowTagValuesStatement) stmt()            {}
-func (*ShowUsersStatement) stmt()                {}
-func (*RevokeStatement) stmt()                   {}
-func (*RevokeAdminStatement) stmt()              {}
-func (*SelectStatement) stmt()                   {}
-func (*SetPasswordUserStatement) stmt()          {}
-func (*CreateNodesStatement) stmt()              {}
-func (*DropNodesStatement) stmt()                {}
+func (*ShowDiagnosticsStatement) stmt()            {}
+func (*ShowTagKeyCardinalityStatement) stmt()      {}
+func (*ShowTagKeysStatement) stmt()                {}
+func (*ShowTagValuesCardinalityStatement) stmt()   {}
+func (*ShowTagValuesStatement) stmt()              {}
+func (*ShowUsersStatement) stmt()                  {}
+func (*RevokeStatement) stmt()                     {}
+func (*RevokeAdminStatement) stmt()                {}
+func (*SelectStatement) stmt()                     {}
+func (*SetPasswordUserStatement) stmt()            {}
+func (*CreateNodesStatement) stmt()                {}
+func (*DropNodesStatement) stmt()                  {}
+func (*AlterNodesStatement) stmt()                 {}
 
 // Expr represents an expression that can be evaluated to a value.
 type Expr interface {
@@ -577,12 +579,41 @@ func (a SortFields) String() string {
 	return strings.Join(fields, ", ")
 }
 
-// CreateNodesStatement represents a command for add  nodes to the cluster
-type CreateNodesStatement struct {
-	Hosts  []string
-	Ports  []int
+type NodeOptions struct {
 	Labels map[string]string
 	Mode   string
+	Enable *bool
+}
+
+func (st *NodeOptions) String() string {
+	var buf bytes.Buffer
+	if st.Labels != nil {
+		buf.WriteString(" LABELS ")
+		var labels []string
+		for k, v := range st.Labels {
+			labels = append(labels, fmt.Sprintf("%v=%v", k, v))
+		}
+		buf.WriteString(QuoteStringList(labels))
+	}
+	if st.Mode == RO.String() || st.Mode == WO.String() {
+		buf.WriteString(" MODE ")
+		buf.WriteString(st.Mode)
+	}
+	if st.Enable != nil {
+		if *st.Enable {
+			buf.WriteString(" ENABLE ")
+		}else {
+			buf.WriteString(" DISABLE ")
+		}
+	}
+	return buf.String()
+}
+
+// CreateNodesStatement represents a command for add  nodes to the cluster
+type CreateNodesStatement struct {
+	Hosts []string
+	Ports []int
+	NodeOptions
 }
 
 func (st *CreateNodesStatement) String() string {
@@ -599,21 +630,32 @@ func (st *CreateNodesStatement) String() string {
 		}
 		buf.WriteString(QuoteStringList(ports))
 	}
-	if st.Labels != nil {
-		buf.WriteString(" LABELS ")
-		var labels []string
-		for k, v := range st.Labels {
-			labels = append(labels, fmt.Sprintf("%v=%v", k, v))
-		}
-		buf.WriteString(QuoteStringList(labels))
-	}
-	if st.Mode == RO.String() || st.Mode == WO.String() {
-		buf.WriteString(" MODE ")
-		buf.WriteString(st.Mode)
-	}
+	buf.WriteString(" ")
+	buf.WriteString(st.NodeOptions.String())
 	return buf.String()
 }
 func (s *CreateNodesStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
+	return ExecutionPrivileges{{Admin: true, Name: "", Privilege: AllPrivileges}}, nil
+}
+
+type AlterNodesStatement struct {
+	Names []string
+	NodeOptions
+}
+
+func (st *AlterNodesStatement) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("ALTER NODES")
+	if st.Names != nil {
+		buf.WriteString(" ")
+		buf.WriteString(QuoteStringList(st.Names))
+	}
+	buf.WriteString(" ")
+	buf.WriteString(st.NodeOptions.String())
+	return buf.String()
+
+}
+func (s *AlterNodesStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
 	return ExecutionPrivileges{{Admin: true, Name: "", Privilege: AllPrivileges}}, nil
 }
 
@@ -621,7 +663,7 @@ type DropNodesStatement struct {
 	Names []string
 }
 
-func (st *DropNodesStatement) String() string{
+func (st *DropNodesStatement) String() string {
 	var buf bytes.Buffer
 	buf.WriteString("DROP NODES")
 	if st.Names != nil {
@@ -633,6 +675,7 @@ func (st *DropNodesStatement) String() string{
 func (s *DropNodesStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
 	return ExecutionPrivileges{{Admin: true, Name: "", Privilege: AllPrivileges}}, nil
 }
+
 // CreateDatabaseStatement represents a command for creating a new database.
 type CreateDatabaseStatement struct {
 	// Name of the database to be created.

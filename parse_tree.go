@@ -230,9 +230,15 @@ func init() {
 	Language.Handle(REVOKE, func(p *Parser) (Statement, error) {
 		return p.parseRevokeStatement()
 	})
-	Language.Group(ALTER, RETENTION).Handle(POLICY, func(p *Parser) (Statement, error) {
-		return p.parseAlterRetentionPolicyStatement()
+	Language.Group(ALTER).With(func(alter *ParseTree) {
+		alter.Group(RETENTION).Handle(POLICY, func(p *Parser) (Statement, error) {
+			return p.parseAlterRetentionPolicyStatement()
+		})
+		alter.Handle(NODES, func(parser *Parser) ( Statement,  error) {
+			return parser.parseAlterNodesStatement()
+		})
 	})
+
 	Language.Group(SET, PASSWORD).Handle(FOR, func(p *Parser) (Statement, error) {
 		return p.parseSetPasswordUserStatement()
 	})

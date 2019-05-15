@@ -151,6 +151,8 @@ const (
 	WO
 	PORTS
 	LABELS
+	DISABLE
+	ENABLE
 	keywordEnd
 )
 
@@ -284,7 +286,8 @@ var tokens = [...]string{
 	WO:            "WO",
 	PORTS:         "PORTS",
 	LABELS:        "LABELS",
-
+	DISABLE:       "DISABLE",
+	ENABLE:        "ENABLE",
 }
 
 var keywords map[string]Token
