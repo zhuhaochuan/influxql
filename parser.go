@@ -2032,12 +2032,9 @@ func (p *Parser) parseShowNodesStatement() (*ShowNodesStatements, error) {
 	} else {
 		stmt.Names = hosts
 	}
-	o, found, err := p.parseNodeOptions()
+	o, _, err := p.parseNodeOptions()
 	if err != nil {
 		return nil, err
-	}
-	if len(found) == 0 {
-		return nil, errors.New("no options")
 	}
 	stmt.NodeOptions = *o
 	return stmt, nil
