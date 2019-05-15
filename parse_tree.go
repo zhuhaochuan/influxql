@@ -171,6 +171,9 @@ func init() {
 		show.Handle(USERS, func(p *Parser) (Statement, error) {
 			return p.parseShowUsersStatement()
 		})
+		show.Handle(NODES, func(p *Parser) ( Statement, error) {
+			return p.parseShowNodesStatement()
+		})
 	})
 	Language.Group(CREATE).With(func(create *ParseTree) {
 		create.Group(CONTINUOUS).Handle(QUERY, func(p *Parser) (Statement, error) {

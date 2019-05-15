@@ -284,7 +284,7 @@ func (*Wildcard) node()             {}
 func (*CreateNodesStatement) node() {}
 func (*DropNodesStatement) node()   {}
 func (*AlterNodesStatement) node()  {}
-
+func (*ShowNodesStatements) node()  {}
 // Query represents a collection of ordered statements.
 type Query struct {
 	Statements Statements
@@ -387,7 +387,7 @@ func (*SetPasswordUserStatement) stmt()            {}
 func (*CreateNodesStatement) stmt()                {}
 func (*DropNodesStatement) stmt()                  {}
 func (*AlterNodesStatement) stmt()                 {}
-
+func (*ShowNodesStatements) stmt()                 {}
 // Expr represents an expression that can be evaluated to a value.
 type Expr interface {
 	Node
@@ -602,7 +602,7 @@ func (st *NodeOptions) String() string {
 	if st.Enable != nil {
 		if *st.Enable {
 			buf.WriteString(" ENABLE ")
-		}else {
+		} else {
 			buf.WriteString(" DISABLE ")
 		}
 	}
@@ -657,6 +657,22 @@ func (st *AlterNodesStatement) String() string {
 }
 func (s *AlterNodesStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
 	return ExecutionPrivileges{{Admin: true, Name: "", Privilege: AllPrivileges}}, nil
+}
+
+type ShowNodesStatements AlterNodesStatement
+func (s *ShowNodesStatements) RequiredPrivileges() (ExecutionPrivileges, error) {
+	return ExecutionPrivileges{{Admin: true, Name: "", Privilege: AllPrivileges}}, nil
+}
+func (st *ShowNodesStatements) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("SHOW NODES")
+	if st.Names != nil {
+		buf.WriteString(" ")
+		buf.WriteString(QuoteStringList(st.Names))
+	}
+	buf.WriteString(" ")
+	buf.WriteString(st.NodeOptions.String())
+	return buf.String()
 }
 
 type DropNodesStatement struct {
@@ -748,7 +764,6 @@ func (s *CreateDatabaseStatement) String() string {
 			_, _ = buf.WriteString(QuoteIdent(s.RetentionPolicyName))
 		}
 		s.ClusterOptions.WriteString(&buf)
-
 	}
 
 	return buf.String()

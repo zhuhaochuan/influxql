@@ -3268,11 +3268,23 @@ func TestParser_ParseStatement(t *testing.T) {
 			},
 		},
 		{
+			s: "SHOW NODES 'n1:8888','n2:7777' ENABLE LABELS 'c=d' MODE WO",
+			stmt:&influxql.ShowNodesStatements{
+				Names:[]string{"n1:8888","n2:7777"},
+				NodeOptions:influxql.NodeOptions{
+					Labels: map[string]string{"c":"d"},
+					Mode: "WO",
+					Enable:influxql.Boolptr(true),
+				},
+			},
+		},
+		{
 			s: "DROP NODES 'n1:8888','n1:7777' ",
 			stmt: &influxql.DropNodesStatement{
 				Names: []string{"n1:8888", "n1:7777"},
 			},
 		},
+
 		// Errors
 		{s: ``, err: `found EOF, expected SELECT, DELETE, SHOW, CREATE, DROP, EXPLAIN, GRANT, REVOKE, ALTER, SET, KILL at line 1, char 1`},
 		{s: `SELECT`, err: `found EOF, expected identifier, string, number, bool at line 1, char 8`},
@@ -3322,7 +3334,7 @@ func TestParser_ParseStatement(t *testing.T) {
 		{s: `SHOW RETENTION ON`, err: `found ON, expected POLICIES at line 1, char 16`},
 		{s: `SHOW RETENTION POLICIES ON`, err: `found EOF, expected identifier at line 1, char 28`},
 		{s: `SHOW SHARD`, err: `found EOF, expected GROUPS at line 1, char 12`},
-		{s: `SHOW FOO`, err: `found FOO, expected CONTINUOUS, DATABASES, DIAGNOSTICS, FIELD, GRANTS, MEASUREMENT, MEASUREMENTS, QUERIES, RETENTION, SERIES, SHARD, SHARDS, STATS, SUBSCRIPTIONS, TAG, USERS at line 1, char 6`},
+		{s: `SHOW FOO`, err: `found FOO, expected CONTINUOUS, DATABASES, DIAGNOSTICS, FIELD, GRANTS, MEASUREMENT, MEASUREMENTS, QUERIES, RETENTION, SERIES, SHARD, SHARDS, STATS, SUBSCRIPTIONS, TAG, USERS, NODES at line 1, char 6`},
 		{s: `SHOW STATS FOR`, err: `found EOF, expected string at line 1, char 16`},
 		{s: `SHOW DIAGNOSTICS FOR`, err: `found EOF, expected string at line 1, char 22`},
 		{s: `SHOW GRANTS`, err: `found EOF, expected FOR at line 1, char 13`},

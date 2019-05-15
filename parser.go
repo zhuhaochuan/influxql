@@ -1918,7 +1918,7 @@ func (p *Parser) parseNodeOptions() (*NodeOptions, map[Token]struct{}, error) {
 		}
 		if _, ok := found[ENABLE]; ok {
 			if _, ok2 := found[DISABLE]; ok2 {
-				return nil,found,errors.New("disable and enable in same time")
+				return nil, found, errors.New("disable and enable in same time")
 			}
 
 		}
@@ -2023,6 +2023,13 @@ func (p *Parser) parseAlterNodesStatement() (*AlterNodesStatement, error) {
 	}
 	stmt.NodeOptions = *o
 	return stmt, nil
+}
+func (p *Parser) parseShowNodesStatement() (*ShowNodesStatements, error) {
+	stmt, err := p.parseAlterNodesStatement()
+	if err != nil {
+		return nil, err
+	}
+	return (*ShowNodesStatements)(stmt), nil
 }
 func (p *Parser) parseDropNodesStatement() (*DropNodesStatement, error) {
 	stmt := &DropNodesStatement{}
