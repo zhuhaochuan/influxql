@@ -2025,11 +2025,22 @@ func (p *Parser) parseAlterNodesStatement() (*AlterNodesStatement, error) {
 	return stmt, nil
 }
 func (p *Parser) parseShowNodesStatement() (*ShowNodesStatements, error) {
-	stmt, err := p.parseAlterNodesStatement()
+	stmt := &ShowNodesStatements{}
+	hosts, err := p.parseStringList()
+	if err != nil {
+		p.Unscan()
+	} else {
+		stmt.Names = hosts
+	}
+	o, found, err := p.parseNodeOptions()
 	if err != nil {
 		return nil, err
 	}
-	return (*ShowNodesStatements)(stmt), nil
+	if len(found) == 0 {
+		return nil, errors.New("no options")
+	}
+	stmt.NodeOptions = *o
+	return stmt, nil
 }
 func (p *Parser) parseDropNodesStatement() (*DropNodesStatement, error) {
 	stmt := &DropNodesStatement{}

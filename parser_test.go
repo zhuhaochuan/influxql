@@ -3246,35 +3246,44 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: "CREATE NODES 'n1','n2','n3' PORTS '8888','7777' LABELS 'a=b' DISABLE MODE RO ",
 			stmt: &influxql.CreateNodesStatement{
-				Hosts:  []string{"n1", "n2", "n3"},
-				Ports:  []int{8888, 7777},
-				NodeOptions:influxql.NodeOptions{
+				Hosts: []string{"n1", "n2", "n3"},
+				Ports: []int{8888, 7777},
+				NodeOptions: influxql.NodeOptions{
 					Labels: map[string]string{"a": "b"},
 					Mode:   "RO",
 					Enable: influxql.Boolptr(false),
 				},
-
 			},
 		},
 		{
 			s: "ALTER NODES 'n1:8888','n2:7777' ENABLE LABELS 'c=d' MODE WO",
-			stmt:&influxql.AlterNodesStatement{
-				Names:[]string{"n1:8888","n2:7777"},
-				NodeOptions:influxql.NodeOptions{
-					Labels: map[string]string{"c":"d"},
-					Mode: "WO",
-					Enable:influxql.Boolptr(true),
+			stmt: &influxql.AlterNodesStatement{
+				Names: []string{"n1:8888", "n2:7777"},
+				NodeOptions: influxql.NodeOptions{
+					Labels: map[string]string{"c": "d"},
+					Mode:   "WO",
+					Enable: influxql.Boolptr(true),
 				},
 			},
 		},
 		{
 			s: "SHOW NODES 'n1:8888','n2:7777' ENABLE LABELS 'c=d' MODE WO",
-			stmt:&influxql.ShowNodesStatements{
-				Names:[]string{"n1:8888","n2:7777"},
-				NodeOptions:influxql.NodeOptions{
-					Labels: map[string]string{"c":"d"},
-					Mode: "WO",
-					Enable:influxql.Boolptr(true),
+			stmt: &influxql.ShowNodesStatements{
+				Names: []string{"n1:8888", "n2:7777"},
+				NodeOptions: influxql.NodeOptions{
+					Labels: map[string]string{"c": "d"},
+					Mode:   "WO",
+					Enable: influxql.Boolptr(true),
+				},
+			},
+		},
+		{
+			s: "SHOW NODES  ENABLE LABELS 'c=d' MODE WO",
+			stmt: &influxql.ShowNodesStatements{
+				NodeOptions: influxql.NodeOptions{
+					Labels: map[string]string{"c": "d"},
+					Mode:   "WO",
+					Enable: influxql.Boolptr(true),
 				},
 			},
 		},
