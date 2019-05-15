@@ -285,6 +285,7 @@ func (*CreateNodesStatement) node() {}
 func (*DropNodesStatement) node()   {}
 func (*AlterNodesStatement) node()  {}
 func (*ShowNodesStatements) node()  {}
+
 // Query represents a collection of ordered statements.
 type Query struct {
 	Statements Statements
@@ -388,6 +389,7 @@ func (*CreateNodesStatement) stmt()                {}
 func (*DropNodesStatement) stmt()                  {}
 func (*AlterNodesStatement) stmt()                 {}
 func (*ShowNodesStatements) stmt()                 {}
+
 // Expr represents an expression that can be evaluated to a value.
 type Expr interface {
 	Node
@@ -589,11 +591,7 @@ func (st *NodeOptions) String() string {
 	var buf bytes.Buffer
 	if st.Labels != nil {
 		buf.WriteString(" LABELS ")
-		var labels []string
-		for k, v := range st.Labels {
-			labels = append(labels, fmt.Sprintf("%v=%v", k, v))
-		}
-		buf.WriteString(QuoteStringList(labels))
+		buf.WriteString(QuoteStringMap(st.Labels))
 	}
 	if st.Mode == RO.String() || st.Mode == WO.String() {
 		buf.WriteString(" MODE ")
@@ -616,6 +614,13 @@ type CreateNodesStatement struct {
 	NodeOptions
 }
 
+func QuoteStringMap(m map[string]string) string {
+	var labels []string
+	for k, v := range m {
+		labels = append(labels, fmt.Sprintf("%v=%v", k, v))
+	}
+	return QuoteStringList(labels)
+}
 func (st *CreateNodesStatement) String() string {
 	var buf bytes.Buffer
 	buf.WriteString("CREATE NODES ")
@@ -660,6 +665,7 @@ func (s *AlterNodesStatement) RequiredPrivileges() (ExecutionPrivileges, error) 
 }
 
 type ShowNodesStatements AlterNodesStatement
+
 func (s *ShowNodesStatements) RequiredPrivileges() (ExecutionPrivileges, error) {
 	return ExecutionPrivileges{{Admin: true, Name: "", Privilege: AllPrivileges}}, nil
 }
