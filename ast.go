@@ -664,7 +664,11 @@ func (s *AlterNodesStatement) RequiredPrivileges() (ExecutionPrivileges, error) 
 	return ExecutionPrivileges{{Admin: true, Name: "", Privilege: AllPrivileges}}, nil
 }
 
-type ShowNodesStatements AlterNodesStatement
+type ShowNodesStatements struct {
+	Names    []string
+	NameOnly bool
+	NodeOptions
+}
 
 func (s *ShowNodesStatements) RequiredPrivileges() (ExecutionPrivileges, error) {
 	return ExecutionPrivileges{{Admin: true, Name: "", Privilege: AllPrivileges}}, nil
@@ -676,8 +680,13 @@ func (st *ShowNodesStatements) String() string {
 		buf.WriteString(" ")
 		buf.WriteString(QuoteStringList(st.Names))
 	}
+
 	buf.WriteString(" ")
 	buf.WriteString(st.NodeOptions.String())
+	if st.NameOnly {
+		buf.WriteString(" NAMEONLY ")
+		buf.WriteString(strconv.FormatBool(st.NameOnly))
+	}
 	return buf.String()
 }
 
@@ -721,10 +730,10 @@ type CreateDatabaseStatement struct {
 	ClusterOptions
 }
 type ClusterOptions struct {
-	Key          []string
-	Partition    int
-	Nodes map[string]string
-	Mode         string
+	Key       []string
+	Partition int
+	Nodes     map[string]string
+	Mode      string
 }
 
 func (s *ClusterOptions) WriteString(buf *bytes.Buffer) {

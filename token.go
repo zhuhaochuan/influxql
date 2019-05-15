@@ -153,6 +153,7 @@ const (
 	LABELS
 	DISABLE
 	ENABLE
+	NAMEONLY
 	keywordEnd
 )
 
@@ -288,6 +289,7 @@ var tokens = [...]string{
 	LABELS:        "LABELS",
 	DISABLE:       "DISABLE",
 	ENABLE:        "ENABLE",
+	NAMEONLY:      "NAMEONLY",
 }
 
 var keywords map[string]Token

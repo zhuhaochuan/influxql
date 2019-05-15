@@ -1945,7 +1945,6 @@ func (p *Parser) parseNodeOptions() (*NodeOptions, map[Token]struct{}, error) {
 			}
 			stmt.Labels = labels
 
-
 		case MODE:
 			err := p.parseTokens([]Token{RO})
 			if err != nil {
@@ -2046,6 +2045,10 @@ func (p *Parser) parseShowNodesStatement() (*ShowNodesStatements, error) {
 		return nil, err
 	}
 	stmt.NodeOptions = *o
+	err = p.parseTokens([]Token{NAMEONLY})
+	if err == nil {
+		stmt.NameOnly = true
+	}
 	return stmt, nil
 }
 func (p *Parser) parseDropNodesStatement() (*DropNodesStatement, error) {

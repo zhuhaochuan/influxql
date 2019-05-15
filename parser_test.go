@@ -3276,7 +3276,7 @@ func TestParser_ParseStatement(t *testing.T) {
 			},
 		},
 		{
-			s: "SHOW NODES 'n1:8888','n2:7777' ENABLE LABELS 'c=d' MODE WO",
+			s: "SHOW NODES 'n1:8888','n2:7777' ENABLE LABELS 'c=d' MODE WO NAMEONLY",
 			stmt: &influxql.ShowNodesStatements{
 				Names: []string{"n1:8888", "n2:7777"},
 				NodeOptions: influxql.NodeOptions{
@@ -3284,6 +3284,7 @@ func TestParser_ParseStatement(t *testing.T) {
 					Mode:   "WO",
 					Enable: influxql.Boolptr(true),
 				},
+				NameOnly:true,
 			},
 		},
 		{
