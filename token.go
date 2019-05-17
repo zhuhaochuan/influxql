@@ -149,6 +149,7 @@ const (
 	REMOVE
 	RO
 	WO
+	RW
 	PORTS
 	LABELS
 	DISABLE
@@ -285,6 +286,7 @@ var tokens = [...]string{
 	REMOVE:        "REMOVE",
 	RO:            "RO",
 	WO:            "WO",
+	RW:            "RW",
 	PORTS:         "PORTS",
 	LABELS:        "LABELS",
 	DISABLE:       "DISABLE",

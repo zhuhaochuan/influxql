@@ -1761,21 +1761,16 @@ func (p *Parser) parseClusterOptions(stmt *ClusterOptions) (int, error) {
 			}
 			stmt.Nodes = nodes
 		case MODE:
-			err := p.parseTokens([]Token{RO})
-			if err != nil {
+			t, _, _ := p.ScanIgnoreWhitespace()
+			switch t {
+			case RO:
+			case WO:
+			case RW:
+			default:
 				p.Unscan()
-			} else {
-				stmt.Mode = RO.String()
+				return len(found), errors.New("expect RO,WO or RW after MODE")
 			}
-			err = p.parseTokens([]Token{WO})
-			if err != nil {
-				p.Unscan()
-			} else {
-				stmt.Mode = WO.String()
-			}
-			if stmt.Mode == "" {
-				return len(found), errors.New("expect READ or WRITE after MODE")
-			}
+			stmt.Mode = t.String()
 		default:
 			p.Unscan()
 			return len(found), nil
@@ -1946,21 +1941,16 @@ func (p *Parser) parseNodeOptions() (*NodeOptions, map[Token]struct{}, error) {
 			stmt.Labels = labels
 
 		case MODE:
-			err := p.parseTokens([]Token{RO})
-			if err != nil {
+			t, _, _ := p.ScanIgnoreWhitespace()
+			switch t {
+			case RO:
+			case WO:
+			case RW:
+			default:
 				p.Unscan()
-			} else {
-				stmt.Mode = RO.String()
+				return nil,found, errors.New("expect RO,WO or RW after MODE")
 			}
-			err = p.parseTokens([]Token{WO})
-			if err != nil {
-				p.Unscan()
-			} else {
-				stmt.Mode = WO.String()
-			}
-			if stmt.Mode == "" {
-				return nil, found, errors.New("expect RO or WRITE after RO")
-			}
+			stmt.Mode = t.String()
 		case DISABLE:
 			stmt.Enable = Boolptr(false)
 		case ENABLE:

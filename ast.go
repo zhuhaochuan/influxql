@@ -729,6 +729,7 @@ type CreateDatabaseStatement struct {
 
 	ClusterOptions
 }
+
 type ClusterOptions struct {
 	Key       []string
 	Partition int
