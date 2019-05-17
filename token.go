@@ -155,6 +155,7 @@ const (
 	DISABLE
 	ENABLE
 	NAMEONLY
+	SELECTOR
 	keywordEnd
 )
 
@@ -292,6 +293,7 @@ var tokens = [...]string{
 	DISABLE:       "DISABLE",
 	ENABLE:        "ENABLE",
 	NAMEONLY:      "NAMEONLY",
+	SELECTOR:      "SELECTOR",
 }
 
 var keywords map[string]Token

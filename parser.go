@@ -1755,11 +1755,17 @@ func (p *Parser) parseClusterOptions(stmt *ClusterOptions) (int, error) {
 			}
 			stmt.Partition = partition
 		case NODES:
-			nodes, err := p.parseStringMap()
+			nodes, err := p.parseStringList()
 			if err != nil {
 				return len(found), err
 			}
 			stmt.Nodes = nodes
+		case SELECTOR:
+			selector, err := p.parseStringMap()
+			if err != nil {
+				return len(found), err
+			}
+			stmt.Selector = selector
 		case MODE:
 			t, _, _ := p.ScanIgnoreWhitespace()
 			switch t {
@@ -1948,7 +1954,7 @@ func (p *Parser) parseNodeOptions() (*NodeOptions, map[Token]struct{}, error) {
 			case RW:
 			default:
 				p.Unscan()
-				return nil,found, errors.New("expect RO,WO or RW after MODE")
+				return nil, found, errors.New("expect RO,WO or RW after MODE")
 			}
 			stmt.Mode = t.String()
 		case DISABLE:

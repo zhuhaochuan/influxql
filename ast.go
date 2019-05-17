@@ -733,7 +733,8 @@ type CreateDatabaseStatement struct {
 type ClusterOptions struct {
 	Key       []string
 	Partition int
-	Nodes     map[string]string
+	Nodes     []string
+	Selector  map[string]string
 	Mode      string
 }
 
@@ -747,8 +748,12 @@ func (s *ClusterOptions) WriteString(buf *bytes.Buffer) {
 		_, _ = buf.WriteString(strconv.Itoa(s.Partition))
 	}
 	if s.Nodes != nil {
-		_, _ = buf.WriteString(" NODES ")
-		_, _ = buf.WriteString(QuoteStringMap(s.Nodes))
+		buf.WriteString(" NODES ")
+		buf.WriteString(QuoteStringList(s.Nodes))
+	}
+	if s.Selector != nil {
+		_, _ = buf.WriteString(" SELECTOR ")
+		_, _ = buf.WriteString(QuoteStringMap(s.Selector))
 	}
 	if s.Mode != "" {
 		_, _ = buf.WriteString(" MODE ")
