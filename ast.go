@@ -2662,7 +2662,7 @@ func (s *DropContinuousQueryStatement) DefaultDatabase() string {
 	return s.Database
 }
 
-type StartContinuousQueryStatement struct{
+type StartContinuousQueryStatement struct {
 	Name string
 	Database string
 }
@@ -2679,7 +2679,7 @@ func (s *StartContinuousQueryStatement) DefaultDatabase() string {
 	return s.Database
 }
 
-type StopContinuousQueryStatement struct{
+type StopContinuousQueryStatement struct {
 	Name string
 	Database string
 }
