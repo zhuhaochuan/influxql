@@ -285,7 +285,7 @@ func (*CreateNodesStatement) node() {}
 func (*DropNodesStatement) node()   {}
 func (*AlterNodesStatement) node()  {}
 func (*ShowNodesStatements) node()  {}
-func (*StatrContinuousQueryStatement) node()        {}
+func (*StatContinuousQueryStatement) node()        {}
 func (*StopContinuousQueryStatement) node()        {}
 
 // Query represents a collection of ordered statements.
