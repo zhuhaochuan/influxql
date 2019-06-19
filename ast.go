@@ -2662,6 +2662,43 @@ func (s *DropContinuousQueryStatement) DefaultDatabase() string {
 	return s.Database
 }
 
+type StartContinuousQueryStatement struce{
+	Name string
+	Database string
+}
+
+func (s *StartContinuousQueryStatement) String() string {
+	return fmt.Sprintf("START CONTINUOUS QUERY %s ON %s", QuoteIdent(s.Name), QuoteIdent(s.Database))
+}
+
+func (s *StartContinuousQueryStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
+	return ExecutionPrivileges{{Admin: false, Name: s.Database, Privilege: WritePrivilege}}, nil
+}
+
+func (s *StartContinuousQueryStatement) DefaultDatabase() string {
+	return s.Database
+}
+
+type StopContinuousQueryStatement struce{
+	Name string
+	Database string
+}
+
+func (s *StopContinuousQueryStatement) String() string {
+	return fmt.Sprintf("STOP CONTINUOUS QUERY %s ON %s", QuoteIdent(s.Name), QuoteIdent(s.Database))
+}
+
+func (s *StopContinuousQueryStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
+	return ExecutionPrivileges{{Admin: false, Name: s.Database, Privilege: WritePrivilege}}, nil
+}
+
+func (s *StopContinuousQueryStatement) DefaultDatabase() string {
+	return s.Database
+}
+
+
+
+
 // ShowMeasurementCardinalityStatement represents a command for listing measurement cardinality.
 type ShowMeasurementCardinalityStatement struct {
 	Exact         bool // If false then cardinality estimation will be used.

@@ -248,4 +248,10 @@ func init() {
 	Language.Group(KILL).Handle(QUERY, func(p *Parser) (Statement, error) {
 		return p.parseKillQueryStatement()
 	})
+	Language.Group(START,CONTINUOUS).Handle(QUERY,func(p *Parser) (Statement, error) {
+		return p.parseStartContinuousQueryStatement()
+	})
+	Language.Group(STOP,CONTINUOUS).Handle(QUERY,func(p *Parser) (Statement, error) {
+		return p.parseStopContinuousQueryStatement()
+	})
 }
