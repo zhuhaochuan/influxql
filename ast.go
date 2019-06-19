@@ -389,7 +389,8 @@ func (*CreateNodesStatement) stmt()                {}
 func (*DropNodesStatement) stmt()                  {}
 func (*AlterNodesStatement) stmt()                 {}
 func (*ShowNodesStatements) stmt()                 {}
-
+func (*StartContinuousQueryStatement) stmt()       {}
+func (*StopContinuousQueryStatement) stmt()        {}
 // Expr represents an expression that can be evaluated to a value.
 type Expr interface {
 	Node
