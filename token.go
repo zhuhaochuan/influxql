@@ -299,7 +299,7 @@ var tokens = [...]string{
 	SELECTOR:      "SELECTOR",
 	START:		   "START",
 	STOP:		   "STOP",
-	RRBALANCE:"REBALANCE",
+	REBALANCE:"REBALANCE",
 }
 
 var keywords map[string]Token
