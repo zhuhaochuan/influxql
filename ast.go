@@ -287,6 +287,7 @@ func (*AlterNodesStatement) node()  {}
 func (*ShowNodesStatements) node()  {}
 func (*StartContinuousQueryStatement) node()        {}
 func (*StopContinuousQueryStatement) node()        {}
+func (*RebalanceContinuousQueryStatement) node()        {}
 
 // Query represents a collection of ordered statements.
 type Query struct {
@@ -393,6 +394,7 @@ func (*AlterNodesStatement) stmt()                 {}
 func (*ShowNodesStatements) stmt()                 {}
 func (*StartContinuousQueryStatement) stmt()       {}
 func (*StopContinuousQueryStatement) stmt()        {}
+func (*RebalanceContinuousQueryStatement) stmt()        {}
 // Expr represents an expression that can be evaluated to a value.
 type Expr interface {
 	Node
@@ -2699,7 +2701,22 @@ func (s *StopContinuousQueryStatement) DefaultDatabase() string {
 	return s.Database
 }
 
+type RebalanceContinuousQueryStatement struct {
+	Name string
+	Database string
+}
 
+func (s *RebalanceContinuousQueryStatement) String() string {
+	return fmt.Sprintf("REBALANCE CONTINUOUS QUERYS")
+}
+
+func (s *RebalanceContinuousQueryStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
+	return ExecutionPrivileges{{Admin: false, Name: s.Database, Privilege: WritePrivilege}}, nil
+}
+
+func (s *RebalanceContinuousQueryStatement) DefaultDatabase() string {
+	return s.Database
+}
 
 
 // ShowMeasurementCardinalityStatement represents a command for listing measurement cardinality.

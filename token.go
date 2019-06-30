@@ -158,6 +158,7 @@ const (
 	SELECTOR
 	START
 	STOP
+	REBALANCE
 	keywordEnd
 )
 
