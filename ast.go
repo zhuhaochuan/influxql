@@ -2725,8 +2725,7 @@ func (s *RebalanceContinuousQueryStatement) DefaultDatabase() string {
 type ReDoContinuousQueryStatement struct {
 	Name string
 	Database string
-	Begin string
-	End string
+	Condition Expr
 }
 
 func (s *ReDoContinuousQueryStatement) String() string {
@@ -2741,9 +2740,6 @@ func (s *ReDoContinuousQueryStatement) DefaultDatabase() string {
 	return s.Database
 }
 
-func (s *ReDoContinuousQueryStatement) TimeInterval() (string,string) {
-	return s.Begin,s.End
-}
 
 
 // ShowMeasurementCardinalityStatement represents a command for listing measurement cardinality.

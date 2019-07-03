@@ -2371,17 +2371,21 @@ func (p *Parser) parseReDoContinuousQueryStatement() (*ReDoContinuousQueryStatem
 	}
 	stmt.Database = ident
 
-	ident, err = p.ParseIdent()
-	if err != nil {
-		return nil, err
-	}
-	stmt.Begin = ident
+	// ident, err = p.ParseIdent()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// stmt.Begin = ident
 
-	ident, err = p.ParseIdent()
-	if err != nil {
+	// ident, err = p.ParseIdent()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// stmt.End = ident
+	// Parse condition: "WHERE EXPR".
+	if stmt.Condition, err = p.parseCondition(); err != nil {
 		return nil, err
 	}
-	stmt.End = ident
 
 
 	return stmt, nil
