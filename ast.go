@@ -2725,8 +2725,8 @@ func (s *RebalanceContinuousQueryStatement) DefaultDatabase() string {
 type ReDoContinuousQueryStatement struct {
 	Name string
 	Database string
-	begin string
-	end string
+	Begin string
+	End string
 }
 
 func (s *ReDoContinuousQueryStatement) String() string {
@@ -2742,7 +2742,7 @@ func (s *ReDoContinuousQueryStatement) DefaultDatabase() string {
 }
 
 func (s *ReDoContinuousQueryStatement) TimeInterval() (string,string) {
-	return s.begin,s.end
+	return s.Begin,s.End
 }
 
 

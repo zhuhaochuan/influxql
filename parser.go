@@ -2375,13 +2375,13 @@ func (p *Parser) parseReDoContinuousQueryStatement() (*ReDoContinuousQueryStatem
 	if err != nil {
 		return nil, err
 	}
-	stmt.begin = ident
+	stmt.Begin = ident
 
 	ident, err = p.ParseIdent()
 	if err != nil {
 		return nil, err
 	}
-	stmt.end = ident
+	stmt.End = ident
 
 
 	return stmt, nil
