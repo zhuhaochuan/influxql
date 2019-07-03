@@ -159,6 +159,7 @@ const (
 	START
 	STOP
 	REBALANCE
+	REDO
 	keywordEnd
 )
 
@@ -300,6 +301,7 @@ var tokens = [...]string{
 	START:		   "START",
 	STOP:		   "STOP",
 	REBALANCE:"REBALANCE",
+	REDO:"REDO"
 }
 
 var keywords map[string]Token

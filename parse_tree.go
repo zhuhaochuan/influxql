@@ -257,5 +257,8 @@ func init() {
 	Language.Group(REBALANCE,CONTINUOUS).Handle(QUERY,func(p *Parser) (Statement, error) {
 		return p.parseRebalanceContinuousQueryStatement()
 	})
+	Language.Group(REDO,CONTINUOUS).Handle(QUERY,func(p *Parser) (Statement, error) {
+		return p.parseReDoContinuousQueryStatement()
+	})
 
 }

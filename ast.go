@@ -288,6 +288,7 @@ func (*ShowNodesStatements) node()  {}
 func (*StartContinuousQueryStatement) node()        {}
 func (*StopContinuousQueryStatement) node()        {}
 func (*RebalanceContinuousQueryStatement) node()        {}
+func (*ReDoContinuousQueryStatement) node() {}
 
 // Query represents a collection of ordered statements.
 type Query struct {
@@ -395,6 +396,7 @@ func (*ShowNodesStatements) stmt()                 {}
 func (*StartContinuousQueryStatement) stmt()       {}
 func (*StopContinuousQueryStatement) stmt()        {}
 func (*RebalanceContinuousQueryStatement) stmt()        {}
+func (*ReDoContinuousQueryStatement) stmt() {}
 // Expr represents an expression that can be evaluated to a value.
 type Expr interface {
 	Node
@@ -2716,6 +2718,31 @@ func (s *RebalanceContinuousQueryStatement) RequiredPrivileges() (ExecutionPrivi
 
 func (s *RebalanceContinuousQueryStatement) DefaultDatabase() string {
 	return s.Database
+}
+
+
+
+type ReDoContinuousQueryStatement struct {
+	Name string
+	Database string
+	begin time.Time
+	end time.Time
+}
+
+func (s *ReDoContinuousQueryStatement) String() string {
+	return fmt.Sprintf("REDO CONTINUOUS QUERY")
+}
+
+func (s *ReDoContinuousQueryStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
+	return ExecutionPrivileges{{Admin: false, Name: s.Database, Privilege: WritePrivilege}}, nil
+}
+
+func (s *ReDoContinuousQueryStatement) DefaultDatabase() string {
+	return s.Database
+}
+
+func (s *ReDoContinuousQueryStatement) TimeInterval() (time.Time,time.Time) {
+	return s.begin,s.end
 }
 
 
