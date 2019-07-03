@@ -301,7 +301,7 @@ var tokens = [...]string{
 	START:		   "START",
 	STOP:		   "STOP",
 	REBALANCE:"REBALANCE",
-	REDO:"REDO"
+	REDO:"REDO",
 }
 
 var keywords map[string]Token
