@@ -260,5 +260,8 @@ func init() {
 	Language.Group(REDO,CONTINUOUS).Handle(QUERY,func(p *Parser) (Statement, error) {
 		return p.parseReDoContinuousQueryStatement()
 	})
+	Language.Group(STOP,ALL,CONTINUOUS).Handle(QUERY,func(p *Parser) (Statement, error) {
+		return p.parseStopAllContinuousQueryStatement()
+	})
 
 }

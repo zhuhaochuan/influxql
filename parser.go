@@ -2325,6 +2325,30 @@ func (p *Parser) parseStopContinuousQueryStatement() (*StopContinuousQueryStatem
 	return stmt, nil
 }
 
+func (p *Parser) parseStopAllContinuousQueryStatement() (*StopAllContinuousQueryStatement, error) {
+	stmt := &StopAllContinuousQueryStatement{}
+
+	// // Read the id of the query to drop.
+	// ident, err := p.ParseIdent()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// stmt.Name = ident
+
+	// Expect an "ON" keyword.
+	if tok, pos, lit := p.ScanIgnoreWhitespace(); tok != ON {
+		return nil, newParseError(tokstr(tok, lit), []string{"ON"}, pos)
+	}
+
+	// Read the name of the database to remove the query from.
+	if ident, err = p.ParseIdent(); err != nil {
+		return nil, err
+	}
+	stmt.Database = ident
+
+	return stmt, nil
+}
+
 
 func (p *Parser) parseRebalanceContinuousQueryStatement() (*RebalanceContinuousQueryStatement, error) {
 	stmt := &RebalanceContinuousQueryStatement{}
@@ -2390,6 +2414,8 @@ func (p *Parser) parseReDoContinuousQueryStatement() (*ReDoContinuousQueryStatem
 
 	return stmt, nil
 }
+
+
 
 
 // parseFields parses a list of one or more fields.
