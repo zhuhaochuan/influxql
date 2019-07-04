@@ -1484,6 +1484,32 @@ func (p *Parser) parseDropMeasurementStatement() (*DropMeasurementStatement, err
 	return stmt, nil
 }
 
+func (p *Parser) parseDisableProxyStatement() (*DisableProxyStatement, error) {
+	stmt := &DisableProxyStatement{}
+
+	// Parse the name of the measurement to be dropped.
+	lit, err := p.ParseIdent()
+	if err != nil {
+		return nil, err
+	}
+	stmt.Name = lit
+
+	return stmt, nil
+}
+
+func (p *Parser) parseEnableProxyStatement() (*EnableProxyStatement, error) {
+	stmt := &EnableProxyStatement{}
+
+	// Parse the name of the measurement to be dropped.
+	lit, err := p.ParseIdent()
+	if err != nil {
+		return nil, err
+	}
+	stmt.Name = lit
+
+	return stmt, nil
+}
+
 // parseDropSeriesStatement parses a string and returns a DropSeriesStatement.
 // This function assumes the "DROP SERIES" tokens have already been consumed.
 func (p *Parser) parseDropSeriesStatement() (*DropSeriesStatement, error) {

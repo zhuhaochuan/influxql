@@ -219,6 +219,8 @@ func (*DeleteStatement) node()                     {}
 func (*DropContinuousQueryStatement) node()        {}
 func (*DropDatabaseStatement) node()               {}
 func (*DropMeasurementStatement) node()            {}
+func (*DisableProxyStatement) node()            {}
+func (*EnableProxyStatement) node()            {}
 func (*DropRetentionPolicyStatement) node()        {}
 func (*DropSeriesStatement) node()                 {}
 func (*DropShardStatement) node()                  {}
@@ -356,6 +358,8 @@ func (*DeleteStatement) stmt()                     {}
 func (*DropContinuousQueryStatement) stmt()        {}
 func (*DropDatabaseStatement) stmt()               {}
 func (*DropMeasurementStatement) stmt()            {}
+func (*DisableProxyStatement) stmt()            {}
+func (*EnableStatement) stmt()            {}
 func (*DropRetentionPolicyStatement) stmt()        {}
 func (*DropSeriesStatement) stmt()                 {}
 func (*DropSubscriptionStatement) stmt()           {}
@@ -2908,6 +2912,43 @@ func (s *DropMeasurementStatement) String() string {
 
 // RequiredPrivileges returns the privilege(s) required to execute a DropMeasurementStatement
 func (s *DropMeasurementStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
+	return ExecutionPrivileges{{Admin: true, Name: "", Privilege: AllPrivileges}}, nil
+}
+
+type DisableProxyStatement struct {
+	// Name of the measurement to be dropped.
+	Name string
+}
+
+// String returns a string representation of the drop measurement statement.
+func (s *DisableProxyStatement) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("DISABLE PROXY ")
+	_, _ = buf.WriteString(QuoteIdent(s.Name))
+	return buf.String()
+}
+
+// RequiredPrivileges returns the privilege(s) required to execute a DropMeasurementStatement
+func (s *DisableProxyStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
+	return ExecutionPrivileges{{Admin: true, Name: "", Privilege: AllPrivileges}}, nil
+}
+
+
+type EnableProxyStatement struct {
+	// Name of the measurement to be dropped.
+	Name string
+}
+
+// String returns a string representation of the drop measurement statement.
+func (s *EnableProxyStatement) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("ENABLE PROXY ")
+	_, _ = buf.WriteString(QuoteIdent(s.Name))
+	return buf.String()
+}
+
+// RequiredPrivileges returns the privilege(s) required to execute a DropMeasurementStatement
+func (s *EnableProxyStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
 	return ExecutionPrivileges{{Admin: true, Name: "", Privilege: AllPrivileges}}, nil
 }
 

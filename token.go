@@ -160,6 +160,9 @@ const (
 	STOP
 	REBALANCE
 	REDO
+	ENABLE
+	DISABLE
+	PROXY
 	keywordEnd
 )
 
@@ -302,6 +305,9 @@ var tokens = [...]string{
 	STOP:		   "STOP",
 	REBALANCE:"REBALANCE",
 	REDO:"REDO",
+	ENABLE:"ENABLE",
+	DISABLE:"DISABLE",
+	PROXY:"PROXY"
 }
 
 var keywords map[string]Token

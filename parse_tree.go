@@ -263,5 +263,8 @@ func init() {
 	Language.Group(STOP,ALL,CONTINUOUS).Handle(QUERY,func(p *Parser) (Statement, error) {
 		return p.parseStopAllContinuousQueryStatement()
 	})
+	Language.Group(DISABLE).Handle(PROXY,func(p *Parser) (Statement, error) {
+		return p.parseDisableProxyStatement()
+	})
 
 }
