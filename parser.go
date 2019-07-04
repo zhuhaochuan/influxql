@@ -2357,12 +2357,23 @@ func (p *Parser) parseStopContinuousQueryStatement() (*StopContinuousQueryStatem
 func (p *Parser) parseStopAllContinuousQueryStatement() (*StopAllContinuousQueryStatement, error) {
 	stmt := &StopAllContinuousQueryStatement{}
 
-	// // Read the id of the query to drop.
-	// ident, err := p.ParseIdent()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// stmt.Name = ident
+	// Expect an "ON" keyword.
+	if tok, pos, lit := p.ScanIgnoreWhitespace(); tok != ON {
+		return nil, newParseError(tokstr(tok, lit), []string{"ON"}, pos)
+	}
+
+	// Read the name of the database to remove the query from.
+	ident, err := p.ParseIdent()
+	if err != nil {
+		return nil, err
+	}
+	stmt.Database = ident
+
+	return stmt, nil
+}
+
+func (p *Parser) parseStartAllContinuousQueryStatement() (*StartAllContinuousQueryStatement, error) {
+	stmt := &StartAllContinuousQueryStatement{}
 
 	// Expect an "ON" keyword.
 	if tok, pos, lit := p.ScanIgnoreWhitespace(); tok != ON {

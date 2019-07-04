@@ -293,6 +293,7 @@ func (*StopContinuousQueryStatement) node()        {}
 func (*RebalanceContinuousQueryStatement) node()        {}
 func (*ReDoContinuousQueryStatement) node() {}
 func (*StopAllContinuousQueryStatement) node()        {}
+func (*StartAllContinuousQueryStatement) node()        {}
 
 // Query represents a collection of ordered statements.
 type Query struct {
@@ -405,6 +406,7 @@ func (*StopContinuousQueryStatement) stmt()        {}
 func (*RebalanceContinuousQueryStatement) stmt()        {}
 func (*ReDoContinuousQueryStatement) stmt() {}
 func (*StopAllContinuousQueryStatement) stmt()        {}
+func (*StartAllContinuousQueryStatement) stmt()        {}
 // Expr represents an expression that can be evaluated to a value.
 type Expr interface {
 	Node
@@ -2741,6 +2743,22 @@ func (s *StopAllContinuousQueryStatement) DefaultDatabase() string {
 	return s.Database
 }
 
+type StartAllContinuousQueryStatement struct {
+	// Name string
+	Database string
+}
+
+func (s *StartAllContinuousQueryStatement) String() string {
+	return fmt.Sprintf("START ALL CONTINUOUS QUERY ON %s",  QuoteIdent(s.Database))
+}
+
+func (s *StartAllContinuousQueryStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
+	return ExecutionPrivileges{{Admin: false, Name: s.Database, Privilege: WritePrivilege}}, nil
+}
+
+func (s *StartAllContinuousQueryStatement) DefaultDatabase() string {
+	return s.Database
+}
 
 
 type RebalanceContinuousQueryStatement struct {
