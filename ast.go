@@ -359,7 +359,7 @@ func (*DropContinuousQueryStatement) stmt()        {}
 func (*DropDatabaseStatement) stmt()               {}
 func (*DropMeasurementStatement) stmt()            {}
 func (*DisableProxyStatement) stmt()            {}
-func (*EnableStatement) stmt()            {}
+func (*EnableProxyStatement) stmt()            {}
 func (*DropRetentionPolicyStatement) stmt()        {}
 func (*DropSeriesStatement) stmt()                 {}
 func (*DropSubscriptionStatement) stmt()           {}
