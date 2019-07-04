@@ -161,6 +161,7 @@ const (
 	REBALANCE
 	REDO
 	PROXY
+	PROXIES
 	keywordEnd
 )
 
@@ -304,6 +305,7 @@ var tokens = [...]string{
 	REBALANCE:"REBALANCE",
 	REDO:"REDO",
 	PROXY:"PROXY",
+	PROXIES:"PROXIES",
 }
 
 var keywords map[string]Token

@@ -237,6 +237,7 @@ func (*SetPasswordUserStatement) node()            {}
 func (*ShowContinuousQueriesStatement) node()      {}
 func (*ShowGrantsForUserStatement) node()          {}
 func (*ShowDatabasesStatement) node()              {}
+func (*ShowProxiesStatement) node()              {}
 func (*ShowFieldKeyCardinalityStatement) node()    {}
 func (*ShowFieldKeysStatement) node()              {}
 func (*ShowRetentionPoliciesStatement) node()      {}
@@ -371,6 +372,7 @@ func (*KillQueryStatement) stmt()                  {}
 func (*ShowContinuousQueriesStatement) stmt()      {}
 func (*ShowGrantsForUserStatement) stmt()          {}
 func (*ShowDatabasesStatement) stmt()              {}
+func (*ShowProxiesStatement) stmt()              {}
 func (*ShowFieldKeyCardinalityStatement) stmt()    {}
 func (*ShowFieldKeysStatement) stmt()              {}
 func (*ShowMeasurementCardinalityStatement) stmt() {}
@@ -2569,6 +2571,19 @@ func (s *ShowDatabasesStatement) String() string { return "SHOW DATABASES" }
 
 // RequiredPrivileges returns the privilege required to execute a ShowDatabasesStatement.
 func (s *ShowDatabasesStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
+	// SHOW DATABASES is one of few statements that have no required privileges.
+	// Anyone is allowed to execute it, but the returned results depend on the user's
+	// individual database permissions.
+	return ExecutionPrivileges{{Admin: false, Name: "", Privilege: NoPrivileges}}, nil
+}
+
+type ShowProxiesStatement struct{}
+
+// String returns a string representation of the show databases command.
+func (s *ShowProxiesStatement) String() string { return "SHOW PROXIES" }
+
+// RequiredPrivileges returns the privilege required to execute a ShowDatabasesStatement.
+func (s *ShowProxiesStatement) RequiredPrivileges() (ExecutionPrivileges, error) {
 	// SHOW DATABASES is one of few statements that have no required privileges.
 	// Anyone is allowed to execute it, but the returned results depend on the user's
 	// individual database permissions.

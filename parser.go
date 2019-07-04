@@ -1599,6 +1599,9 @@ func (p *Parser) parseShowDatabasesStatement() (*ShowDatabasesStatement, error) 
 	return &ShowDatabasesStatement{}, nil
 }
 
+func (p *Parser) parseShowProxiesStatement() (*ShowProxiesStatement, error) {
+	return &ShowProxiesStatement{}, nil
+}
 // parseCreateContinuousQueriesStatement parses a string and returns a CreateContinuousQueryStatement.
 // This function assumes the "CREATE CONTINUOUS" tokens have already been consumed.
 func (p *Parser) parseCreateContinuousQueryStatement() (*CreateContinuousQueryStatement, error) {

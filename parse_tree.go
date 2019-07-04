@@ -113,6 +113,9 @@ func init() {
 		show.Handle(DATABASES, func(p *Parser) (Statement, error) {
 			return p.parseShowDatabasesStatement()
 		})
+		show.Handle(PROXIES, func(p *Parser) (Statement, error) {
+			return p.parseShowProxiesStatement()
+		})
 		show.Handle(DIAGNOSTICS, func(p *Parser) (Statement, error) {
 			return p.parseShowDiagnosticsStatement()
 		})
