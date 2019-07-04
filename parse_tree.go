@@ -266,5 +266,7 @@ func init() {
 	Language.Group(DISABLE).Handle(PROXY,func(p *Parser) (Statement, error) {
 		return p.parseDisableProxyStatement()
 	})
-
+	Language.Group(ENABLE).Handle(PROXY,func(p *Parser) (Statement, error) {
+		return p.parseEnableProxyStatement()
+	})
 }
