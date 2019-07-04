@@ -303,7 +303,7 @@ var tokens = [...]string{
 	STOP:		   "STOP",
 	REBALANCE:"REBALANCE",
 	REDO:"REDO",
-	PROXY:"PROXY"
+	PROXY:"PROXY",
 }
 
 var keywords map[string]Token
