@@ -2341,7 +2341,8 @@ func (p *Parser) parseStopAllContinuousQueryStatement() (*StopAllContinuousQuery
 	}
 
 	// Read the name of the database to remove the query from.
-	if ident, err := p.ParseIdent(); err != nil {
+	ident, err := p.ParseIdent()
+	if err != nil {
 		return nil, err
 	}
 	stmt.Database = ident
